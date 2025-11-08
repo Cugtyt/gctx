@@ -29,7 +29,7 @@ def cmd_init(args: argparse.Namespace) -> None:
         GitContextManager.checkout_branch(branch)
         print("✓ gctx initialized at ~/.gctx")
         print("  - Repository created at ~/.gctx/repo")
-        print("  - Default config created at ~/.gctx/config.json")
+        print(f"  - Default config created at ~/.gctx/{ConfigManager.GLOBAL_CONFIG_FILE}")
         print(f"  - Active branch: {branch}")
     except Exception as e:
         print(f"✗ Failed to initialize: {e}", file=sys.stderr)
@@ -307,17 +307,17 @@ def cmd_validate(args: argparse.Namespace) -> None:
     else:
         print("✓ ~/.gctx directory exists")
 
-        config_path = ConfigManager.GCTX_HOME / "config.json"
+        config_path = ConfigManager.GCTX_HOME / ConfigManager.GLOBAL_CONFIG_FILE
         if not config_path.exists():
-            errors.append("~/.gctx/config.json does not exist")
+            errors.append(f"~/.gctx/{ConfigManager.GLOBAL_CONFIG_FILE} does not exist")
         else:
-            print("✓ ~/.gctx/config.json exists")
+            print(f"✓ ~/.gctx/{ConfigManager.GLOBAL_CONFIG_FILE} exists")
             try:
                 with config_path.open() as f:
                     json.load(f)
-                print("✓ config.json is valid JSON")
+                print(f"✓ {ConfigManager.GLOBAL_CONFIG_FILE} is valid JSON")
             except json.JSONDecodeError:
-                errors.append("~/.gctx/config.json is not valid JSON")
+                errors.append(f"~/.gctx/{ConfigManager.GLOBAL_CONFIG_FILE} is not valid JSON")
 
         if not ConfigManager.REPO_PATH.exists():
             errors.append("~/.gctx/repo does not exist")

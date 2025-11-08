@@ -12,6 +12,7 @@ class ConfigManager:
     GCTX_HOME: Path = Path.home() / ".gctx"
     REPO_PATH: Path = GCTX_HOME / "repo"
     CONTEXT_FILE: str = "context"
+    GLOBAL_CONFIG_FILE: str = "global.config.json"
 
     @classmethod
     def load_for_branch(cls, branch: str) -> GctxConfig:
@@ -26,7 +27,7 @@ class ConfigManager:
         Returns:
             Merged GctxConfig instance
         """
-        global_path = cls.GCTX_HOME / "config.json"
+        global_path = cls.GCTX_HOME / cls.GLOBAL_CONFIG_FILE
         branch_path = cls.GCTX_HOME / "configs" / f"{branch}.json"
 
         if global_path.exists():
@@ -40,7 +41,6 @@ class ConfigManager:
                 branch_data = json.load(f)
                 global_data.update(branch_data)
 
-        # Create config from merged data, or use defaults if empty
         return GctxConfig(**global_data) if global_data else GctxConfig()
 
     @classmethod
@@ -50,7 +50,7 @@ class ConfigManager:
         Args:
             config: Config instance to save
         """
-        global_path = cls.GCTX_HOME / "config.json"
+        global_path = cls.GCTX_HOME / cls.GLOBAL_CONFIG_FILE
         global_path.parent.mkdir(parents=True, exist_ok=True)
 
         with open(global_path, "w", encoding="utf-8") as f:
@@ -91,7 +91,7 @@ class ConfigManager:
     @classmethod
     def initialize_default(cls) -> None:
         """Create default global config file if it doesn't exist."""
-        global_path = cls.GCTX_HOME / "config.json"
+        global_path = cls.GCTX_HOME / cls.GLOBAL_CONFIG_FILE
 
         if not global_path.exists():
             global_path.parent.mkdir(parents=True, exist_ok=True)

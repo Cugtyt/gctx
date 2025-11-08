@@ -74,7 +74,7 @@ See [`examples/README.md`](examples/README.md) for detailed documentation.
 
 ```
 ~/.gctx/
-├── config.json          # Global default configuration
+├── global.config.json   # Global default configuration
 ├── repo/                # Git repository
 │   └── context          # Context file (tracked by Git)
 ├── configs/             # Per-branch configuration overrides
@@ -87,7 +87,7 @@ See [`examples/README.md`](examples/README.md) for detailed documentation.
 
 ### Configuration
 
-Global configuration (`~/.gctx/config.json`):
+Global configuration (`~/.gctx/global.config.json`):
 ```json
 {
   "token_approach": "chardiv4",
