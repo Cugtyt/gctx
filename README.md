@@ -250,9 +250,17 @@ Once configured, GitHub Copilot will have access to these tools:
 - `mcp_gctx-server_get_context_history` - View history
 - `mcp_gctx-server_get_snapshot` - Get historical context
 
+And this resource:
+- `gctx://usage-guide` - Usage guide for gctx tools
+
 **Tip:** Use different branches for different projects or coding sessions to keep context isolated.
 
-The server exposes the following MCP tools:
+The server exposes the following MCP tools and resources:
+
+### MCP Resource
+
+#### `gctx://usage-guide`
+Provides comprehensive usage guidelines for gctx context management tools. MCP clients can read this resource to understand how to effectively use gctx for context management across sessions.
 
 ### MCP Tools
 
@@ -376,7 +384,7 @@ gctx/
 │   ├── git_manager.py      # Git operations
 │   ├── token_counter.py    # Token counting
 │   ├── logger.py           # Per-branch logging
-│   ├── tools.py            # MCP tools
+│   ├── mcp.py              # MCP tools
 │   ├── server.py           # MCP server entry point
 │   └── cli.py              # CLI commands
 ├── pyproject.toml

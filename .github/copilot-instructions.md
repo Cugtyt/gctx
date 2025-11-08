@@ -1,14 +1,26 @@
 ---
 applyTo: "**"
 ---
-# Context management standards
+# Context Management Standards
 
-If gctx tools are available in the environment, please use them to manage context propagation.
+If gctx MCP tools are available, actively use them to manage context across sessions. These tools provide Git-based context versioning with token pressure monitoring.
+You can actively offload the conversation to gctx-managed context, allowing for better organization and compression when token limits are approached.
 
-You should active leverage these tools to ensure that context is consistently maintained and updated throughout the interaction.
+**At session start:**
+- Use `read_context()` to restore context state and check token metrics
+- Monitor `token_pressure_percentage` to decide when compression is needed
 
-* Use read_context to get current active context.
-* Use update_context to create a new context based on the current one with modifications.
-* Use append_to_context to add new information to the current context without removing existing data.
-* Use get_context_history to retrieve the history of context changes if needed.
-* Use get_snapshot to capture previous states of the context for reference.
+**During work:**
+- Use `append_to_context(text, message)` for incremental updates (logs, findings, progress)
+- Use `update_context(new_context, message)` when compressing or restructuring context
+- Check `success` field in all results before using other fields
+
+**For historical reference:**
+- Use `get_context_history(limit, starting_after)` to view past commits
+- Use `get_snapshot(commit_sha)` to retrieve content from specific commits
+- Review history before compression to avoid losing important information
+
+**Best practices:**
+- Always check `success` field; handle errors via `error` field
+- Use descriptive commit messages for easier history navigation
+- Consider compression when `token_pressure_percentage` > 0.8

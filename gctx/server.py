@@ -5,7 +5,7 @@ import argparse
 from gctx.config import GctxConfig
 from gctx.config_manager import ConfigManager
 from gctx.logger import get_logger
-from gctx.tools import setup_mcp
+from gctx.mcp import setup_mcp
 
 
 def main() -> None:

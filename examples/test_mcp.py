@@ -14,7 +14,8 @@ import sys
 
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
-from mcp.types import TextContent
+from mcp.types import TextContent, TextResourceContents
+from pydantic import AnyUrl
 
 
 async def test_mcp_server() -> None:
@@ -50,6 +51,25 @@ async def test_mcp_server() -> None:
             print(f"Available tools: {len(tools_result.tools)}")
             for tool in tools_result.tools:
                 print(f"  - {tool.name}")
+            print()
+
+            # List available resources
+            resources_result = await session.list_resources()
+            print(f"Available resources: {len(resources_result.resources)}")
+            for resource in resources_result.resources:
+                print(f"  - {resource.uri}")
+            print()
+            print()
+
+            # Test: Read usage guide resource
+            print("Test: Read usage guide resource")
+            print("-" * 40)
+            usage_result = await session.read_resource(AnyUrl("gctx://usage-guide"))
+            assert isinstance(usage_result.contents[0], TextResourceContents)
+            guide_text = usage_result.contents[0].text
+            print("✓ Resource read successful")
+            print("Usage guide preview:")
+            print(guide_text[:400] + ("..." if len(guide_text) > 400 else ""))
             print()
             print()
 
@@ -163,6 +183,7 @@ Testing MCP server functionality.
             print()
             print("Summary:")
             print("  ✓ MCP server connection via stdio - Working")
+            print("  ✓ usage-guide resource - Working")
             print("  ✓ read_context tool - Working")
             print("  ✓ update_context tool - Working")
             print("  ✓ append_to_context tool - Working")
