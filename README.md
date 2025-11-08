@@ -163,6 +163,52 @@ Start the MCP server for a specific branch:
 gctx-server --branch master
 ```
 
+### VS Code Integration
+
+To use gctx as an MCP server in VS Code with GitHub Copilot, configure it in your workspace's `.vscode/mcp.json`:
+
+```json
+{
+  "servers": {
+    "gctx-server": {
+      "type": "stdio",
+      "command": "path/to/python.exe",
+      "args": ["-m", "gctx.server", "--branch", "vscode"]
+    }
+  },
+  "inputs": []
+}
+```
+
+**Setup steps:**
+
+1. **Create the MCP configuration file:**
+   ```bash
+   # In your project root
+   mkdir -p .vscode
+   # Create .vscode/mcp.json with the content above
+   ```
+
+2. **Update the Python path:**
+   - If using a virtual environment: `path/to/your/.venv/Scripts/python.exe` (Windows) or `path/to/your/.venv/bin/python` (Linux/Mac)
+   - If using system Python: Use the full path to your Python executable
+   - Example for this project: `C:\\MyProjects\\gctx\\.venv\\Scripts\\python.exe`
+
+3. **Choose your branch:**
+   - Change `--branch vscode` to use a different branch
+   - Each branch has isolated context and configuration
+
+4. **Restart VS Code** to load the MCP server
+
+Once configured, GitHub Copilot will have access to these tools:
+- `mcp_gctx-server_read_context` - Read current context
+- `mcp_gctx-server_update_context` - Replace context
+- `mcp_gctx-server_append_to_context` - Append to context
+- `mcp_gctx-server_get_context_history` - View history
+- `mcp_gctx-server_get_snapshot` - Get historical context
+
+**Tip:** Use different branches for different projects or coding sessions to keep context isolated.
+
 The server exposes the following MCP tools:
 
 ### MCP Tools
