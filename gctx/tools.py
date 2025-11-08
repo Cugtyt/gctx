@@ -19,11 +19,12 @@ logger: logging.Logger | None = None
 mcp: FastMCP = FastMCP("gctx")
 
 
-def setup_tools(branch: str) -> FastMCP:
+def setup_tools(branch: str, config_override: GctxConfig | None = None) -> FastMCP:
     """Initialize tools for a specific branch.
 
     Args:
         branch: Branch name to operate on
+        config_override: Optional config to override loaded configuration
 
     Returns:
         Configured FastMCP server instance
@@ -33,8 +34,12 @@ def setup_tools(branch: str) -> FastMCP:
     logger = get_logger(branch)
     logger.info(f"Setting up MCP tools for branch: {branch}")
 
-    config = ConfigManager.load_for_branch(branch)
-    logger.info(f"Config loaded: {config.model_dump_json()}")
+    if config_override:
+        config = config_override
+        logger.info(f"Using config override: {config.model_dump_json()}")
+    else:
+        config = ConfigManager.load_for_branch(branch)
+        logger.info(f"Config loaded: {config.model_dump_json()}")
 
     manager = GitContextManager(branch)
 

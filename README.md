@@ -163,10 +163,31 @@ Start the MCP server for a specific branch:
 gctx-server --branch master
 ```
 
+**Override configuration:**
+```bash
+# Override token limit for this server instance
+gctx-server --branch master --token-limit 12000
+## MCP Server
+
+Start the MCP server for a specific branch:
+
+```bash
+gctx-server --branch master
+```
+
+**Override configuration:**
+```bash
+gctx-server --branch master --config-override token_limit=12000
+gctx-server --branch master --config-override token_limit=12000 token_approach=chardiv4
+```
+
+The `--config-override` flag accepts `key=value` pairs to override any configuration without modifying config files.
+
 ### VS Code Integration
 
 To use gctx as an MCP server in VS Code with GitHub Copilot, configure it in your workspace's `.vscode/mcp.json`:
 
+**Basic configuration:**
 ```json
 {
   "servers": {
@@ -174,6 +195,24 @@ To use gctx as an MCP server in VS Code with GitHub Copilot, configure it in you
       "type": "stdio",
       "command": "path/to/python.exe",
       "args": ["-m", "gctx.server", "--branch", "vscode"]
+    }
+  },
+  "inputs": []
+}
+```
+
+**With config overrides:**
+```json
+{
+  "servers": {
+    "gctx-server": {
+      "type": "stdio",
+      "command": "path/to/python.exe",
+      "args": [
+        "-m", "gctx.server",
+        "--branch", "vscode",
+        "--config-override", "token_limit=12000"
+      ]
     }
   },
   "inputs": []
@@ -198,7 +237,11 @@ To use gctx as an MCP server in VS Code with GitHub Copilot, configure it in you
    - Change `--branch vscode` to use a different branch
    - Each branch has isolated context and configuration
 
-4. **Restart VS Code** to load the MCP server
+4. **Optional config overrides:**
+   - Add `--config-override` with `key=value` pairs to customize settings
+   - Available keys: `token_limit`, `token_approach`
+
+5. **Restart VS Code** to load the MCP server
 
 Once configured, GitHub Copilot will have access to these tools:
 - `mcp_gctx-server_read_context` - Read current context

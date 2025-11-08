@@ -27,11 +27,18 @@ async def test_mcp_server() -> None:
     # Setup server parameters
     server_params = StdioServerParameters(
         command="uv",
-        args=["run", "gctx-server", "--branch", "master"],
+        args=[
+            "run",
+            "gctx-server",
+            "--branch",
+            "master",
+            "--config-override",
+            "token_limit=10000",
+        ],
         env=None,
     )
 
-    print(">>> Starting MCP server...")
+    print(">>> Starting MCP server with config override (token_limit=10000)...")
     async with stdio_client(server_params) as (read, write):
         async with ClientSession(read, write) as session:
             await session.initialize()
@@ -54,6 +61,16 @@ async def test_mcp_server() -> None:
             content = result.content[0].text
             print("✓ Tool call successful")
             print(f"Result preview: {content[:200]}...")
+
+            # Verify config override worked
+            import json
+
+            result_data = json.loads(content)
+            if result_data.get("token_limit") == 10000:
+                print("✓ Config override verified: token_limit=10000")
+            else:
+                limit = result_data.get("token_limit")
+                print(f"⚠ Config override may not have worked: token_limit={limit}")
             print()
 
             # Test 2: Update context

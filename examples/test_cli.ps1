@@ -166,6 +166,14 @@ Write-Host "Command: gctx history" -ForegroundColor Gray
 uv run gctx history
 Write-Host ""
 
+# Note about MCP server config override
+Write-Host "Note: MCP Server Config Override" -ForegroundColor Cyan
+Write-Host "The MCP server supports config overrides via --config-override:" -ForegroundColor Gray
+Write-Host "  gctx-server --branch master --config-override token_limit=12000" -ForegroundColor Gray
+Write-Host "This allows per-instance configuration without modifying config files." -ForegroundColor Gray
+Write-Host "See examples/test_mcp.py for usage in MCP client connections." -ForegroundColor Gray
+Write-Host ""
+
 # Summary
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "ALL CLI TESTS COMPLETED!" -ForegroundColor Green
