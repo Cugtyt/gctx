@@ -28,6 +28,11 @@ Config Override Examples:
         help="Branch name to operate on",
     )
     parser.add_argument(
+        "--enable-guidance-tool",
+        action="store_true",
+        help="Enable the guidance tool for LLM instruction visibility",
+    )
+    parser.add_argument(
         "--config-override",
         nargs="+",
         metavar="KEY=VALUE",
@@ -65,7 +70,11 @@ Config Override Examples:
         logger.info(f"Active config: {config.model_dump_json()}")
 
         try:
-            mcp_server = setup_mcp(args.branch, config_override=config)
+            mcp_server = setup_mcp(
+                args.branch,
+                config_override=config,
+                enable_guidance_tool=args.enable_guidance_tool,
+            )
             logger.info("MCP server initialized successfully")
 
             mcp_server.run()

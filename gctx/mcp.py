@@ -80,12 +80,17 @@ class SearchResult:
     error: str = ""
 
 
-def setup_mcp(branch: str, config_override: GctxConfig | None = None) -> FastMCP:
+def setup_mcp(
+    branch: str,
+    config_override: GctxConfig | None = None,
+    enable_guidance_tool: bool = False,
+) -> FastMCP:
     """Initialize tools for a specific branch.
 
     Args:
         branch: Branch name to operate on
         config_override: Optional config to override loaded configuration
+        enable_guidance_tool: Whether to enable the guidance tool (default: False)
 
     Returns:
         Configured FastMCP server instance
@@ -106,12 +111,9 @@ def setup_mcp(branch: str, config_override: GctxConfig | None = None) -> FastMCP
 
     mcp = FastMCP("gctx")
 
-    @mcp.resource("gctx://usage-guide")
-    async def get_usage_guide() -> str:
-        """Usage guide for gctx context management tools."""
-        return """# Context Management with gctx
+    USAGE_GUIDE = """Follow this guidance to use gctx context management tools effectively.
 
-If gctx MCP tools are available, actively use them to manage context across sessions.
+Actively use these tools to manage context across sessions.
 These tools provide Git-based context versioning with token pressure monitoring.
 You can actively offload the conversation to gctx-managed context, allowing for better
 organization and compression when token limits are approached.
@@ -128,7 +130,7 @@ organization and compression when token limits are approached.
 **For historical reference:**
 - Use `get_context_history(limit, starting_after)` to view past commits
 - Use `get_snapshot(commit_sha)` to retrieve content from specific commits
-- Use `search_context_history(keywords, limit)` to search commits by keywords in messages or content
+- Use `search_context_history(keywords, limit)` to search commits by keywords
 - Review history before compression to avoid losing important information
 
 **Best practices:**
@@ -137,6 +139,17 @@ organization and compression when token limits are approached.
 - Consider compression when `token_pressure_percentage` > 0.8
 - Use search to quickly find relevant past context without reviewing all history
 """
+
+    @mcp.resource("gctx://usage-guide")
+    async def get_usage_guide() -> str:
+        """Usage guide for gctx context management tools."""
+        return f"# Context Management with gctx\n\n{USAGE_GUIDE}"
+
+    if enable_guidance_tool:
+
+        @mcp.tool(description=USAGE_GUIDE)
+        async def guidance() -> None:
+            pass
 
     @mcp.tool()
     async def read_context() -> ReadContextResult:
