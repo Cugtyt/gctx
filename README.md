@@ -5,7 +5,7 @@
 ## Features
 
 - 🔄 **Git-based versioning** - Every context change is a Git commit with full history
-- �� **Multi-agent branching** - Different agents work on isolated branches with their own configs
+- 🌿 **Multi-agent branching** - Different agents work on isolated branches with their own configs
 - 📊 **Token pressure monitoring** - Track token usage against configurable limits
 - 🔧 **Dual interface** - Both CLI and MCP server for flexible integration
 - 📝 **Per-branch logging** - Separate logs for each branch in `~/.gctx/logs/`
