@@ -38,17 +38,18 @@ class GitContextManager:
         Raises:
             RuntimeError: If repository initialization fails
         """
+        self.branch = branch
+        self.logger = get_logger(self.branch)
+
         self.repo_path = ConfigManager.REPO_PATH
         self.context_file = ConfigManager.CONTEXT_FILE
         self.context_file_path = self.repo_path / self.context_file
 
         self.repo = self._initialize_repo()
 
-        self.branch = branch
         if branch not in [ref.name for ref in self.repo.heads]:
             self._create_branch_from_main(branch)
 
-        self.logger = get_logger(self.branch)
         self.logger.info(f"Initialized GitContextManager for branch: {self.branch}")
 
     def __del__(self) -> None:
@@ -72,23 +73,30 @@ class GitContextManager:
 
         try:
             repo = Repo(self.repo_path)
+            self.logger.info(f"Opened existing repository at {self.repo_path}")
         except InvalidGitRepositoryError:
+            self.logger.info(f"Initializing new repository at {self.repo_path}")
             try:
                 repo = Repo.init(self.repo_path)
+                self.logger.info("Repository initialized")
 
                 config = repo.config_writer()
                 try:
                     config.set_value("user", "name", "gctx-agent")
                     config.set_value("user", "email", "agent@gctx.local")
+                    self.logger.info("Git config set: user.name and user.email")
                 finally:
                     config.release()
 
                 if not self.context_file_path.exists():
                     self.context_file_path.touch()
+                    self.logger.info(f"Created context file: {self.context_file}")
 
                 repo.index.add([self.context_file])
                 repo.index.commit("Initialize gctx context")
+                self.logger.info("Initial commit created")
             except Exception as e:
+                self.logger.error(f"Failed to initialize repository: {e}")
                 raise RuntimeError(f"Failed to initialize repository: {e}") from e
 
         return repo
@@ -101,10 +109,13 @@ class GitContextManager:
         """
         if "main" in [ref.name for ref in self.repo.heads]:
             source = self.repo.heads["main"]
+            self.logger.info(f"Creating branch '{branch}' from 'main'")
         else:
             source = self.repo.active_branch
+            self.logger.info(f"Creating branch '{branch}' from '{source.name}'")
 
         self.repo.create_head(branch, source)
+        self.logger.info(f"Branch '{branch}' created")
 
     @staticmethod
     def get_active_branch() -> str:
@@ -119,7 +130,8 @@ class GitContextManager:
         repo_path = ConfigManager.REPO_PATH
         try:
             repo = Repo(repo_path)
-            return repo.active_branch.name
+            branch_name = repo.active_branch.name
+            return branch_name
         except (InvalidGitRepositoryError, Exception) as e:
             msg = f"Failed to get active branch: {e}"
             raise RuntimeError(msg) from e
@@ -142,9 +154,11 @@ class GitContextManager:
             RuntimeError: If reading context fails
         """
         try:
+            self.logger.info(f"Reading context from branch '{self.branch}'")
             commit = self.repo.heads[self.branch].commit
             blob = commit.tree / self.context_file
             content = blob.data_stream.read().decode("utf-8")
+            self.logger.info(f"Read {len(content)} characters from context")
             return content
         except Exception as e:
             self.logger.error(f"Failed to read context: {e}")
@@ -167,15 +181,12 @@ class GitContextManager:
             self.logger.info(f"Writing context: {message}")
             parent = self.repo.heads[self.branch].commit
 
-            # Write to file
             self.context_file_path.write_text(content, encoding="utf-8")
 
-            # Commit to branch
             self.repo.index.reset(commit=parent)
             self.repo.index.add([self.context_file])
             new_commit = self.repo.index.commit(message, parent_commits=[parent], head=False)
 
-            # Update branch ref
             self.repo.heads[self.branch].commit = new_commit
 
             self.logger.info(f"Committed: {new_commit.hexsha[:8]}")
@@ -212,6 +223,10 @@ class GitContextManager:
         Returns:
             Dictionary with commits list, total_commits, and has_more flag
         """
+        self.logger.info(
+            f"Getting history for branch '{self.branch}' "
+            f"(limit={limit}, starting_after={starting_after})"
+        )
         total = sum(1 for _ in self.repo.iter_commits(self.branch))
 
         if starting_after:
@@ -238,6 +253,7 @@ class GitContextManager:
             last = self.repo.commit(commits[-1]["sha"])
             has_more = len(last.parents) > 0
 
+        self.logger.info(f"Retrieved {len(commits)} commits (total={total}, has_more={has_more})")
         return {"commits": commits, "total_commits": total, "has_more": has_more}
 
     def get_snapshot(self, commit_sha: str) -> dict[str, str]:
@@ -253,18 +269,21 @@ class GitContextManager:
             RuntimeError: If commit doesn't exist or file not found
         """
         try:
+            self.logger.info(f"Getting snapshot for commit {commit_sha[:8]}")
             commit = self.repo.commit(commit_sha)
             blob = commit.tree / self.context_file
             content: str = blob.data_stream.read().decode("utf-8")
             commit_message: str = str(commit.message).strip()
             timestamp: str = datetime.fromtimestamp(commit.committed_date).isoformat()
 
+            self.logger.info(f"Retrieved snapshot: {len(content)} characters")
             return {
                 "content": content,
                 "commit_message": commit_message,
                 "timestamp": timestamp,
             }
         except Exception as e:
+            self.logger.error(f"Failed to get snapshot: {e}")
             raise RuntimeError(f"Failed to get snapshot for commit {commit_sha}: {e}") from e
 
     @classmethod
@@ -280,7 +299,8 @@ class GitContextManager:
         repo_path = ConfigManager.REPO_PATH
         try:
             repo = Repo(repo_path)
-            return [ref.name for ref in repo.heads]
+            branches = [ref.name for ref in repo.heads]
+            return branches
         except (InvalidGitRepositoryError, Exception) as e:
             raise RuntimeError(f"Failed to list branches: {e}") from e
 
