@@ -146,9 +146,7 @@ def cmd_branch_checkout(args: argparse.Namespace) -> None:
     CLI: gctx branch checkout <name>
     """
     try:
-        current = GitContextManager.get_active_branch()
-        manager = GitContextManager(current)
-        manager.checkout_branch(args.name)
+        GitContextManager.checkout_branch(args.name)
         print(f"✓ Switched to branch '{args.name}'")
 
     except Exception as e:

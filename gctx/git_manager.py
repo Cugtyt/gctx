@@ -47,8 +47,6 @@ class GitContextManager:
         self.branch = branch
         if branch not in [ref.name for ref in self.repo.heads]:
             self._create_branch_from_main(branch)
-        if self.repo.active_branch.name != branch:
-            self.repo.heads[branch].checkout()
 
         self.logger = get_logger(self.branch)
         self.logger.info(f"Initialized GitContextManager for branch: {self.branch}")
@@ -304,18 +302,25 @@ class GitContextManager:
         self.logger.info(f"Created branch: {name}")
         return name
 
-    def checkout_branch(self, name: str) -> None:
-        """Checkout a branch.
+    @classmethod
+    def checkout_branch(cls, name: str) -> None:
+        """Checkout a branch in the Git repository.
+
+        This is a class method that changes the active branch in the Git repo.
+        It does not require a manager instance since it only affects Git state.
 
         Args:
             name: Branch name to checkout
 
         Raises:
             ValueError: If branch doesn't exist
+            RuntimeError: If repository doesn't exist or checkout fails
         """
-        if name not in self.list_branches():
-            raise ValueError(f"Branch '{name}' does not exist")
-
-        self.repo.heads[name].checkout()
-        self.branch = name
-        self.logger.info(f"Checked out branch: {name}")
+        repo_path = ConfigManager.REPO_PATH
+        try:
+            repo = Repo(repo_path)
+            if name not in [ref.name for ref in repo.heads]:
+                raise ValueError(f"Branch '{name}' does not exist")
+            repo.heads[name].checkout()
+        except (InvalidGitRepositoryError, Exception) as e:
+            raise RuntimeError(f"Failed to checkout branch: {e}") from e
