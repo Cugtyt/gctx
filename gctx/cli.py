@@ -4,6 +4,9 @@ import argparse
 import json
 import sys
 
+from pydantic import ValidationError
+
+from gctx.config import GctxConfig
 from gctx.config_manager import ConfigManager
 from gctx.git_manager import GitContextManager
 
@@ -11,23 +14,23 @@ from gctx.git_manager import GitContextManager
 def cmd_init(args: argparse.Namespace) -> None:
     """Initialize gctx structure.
 
-    CLI: gctx init
+    CLI: gctx init <branch>
     """
-    # Create directory structure
+    branch: str = args.branch
+
     ConfigManager.GCTX_HOME.mkdir(parents=True, exist_ok=True)
     (ConfigManager.GCTX_HOME / "configs").mkdir(exist_ok=True)
     (ConfigManager.GCTX_HOME / "logs").mkdir(exist_ok=True)
 
-    # Create default global config
     ConfigManager.initialize_default()
 
-    # Initialize git repo with main branch
     try:
-        GitContextManager("main")
+        GitContextManager(branch)
+        GitContextManager.checkout_branch(branch)
         print("✓ gctx initialized at ~/.gctx")
         print("  - Repository created at ~/.gctx/repo")
         print("  - Default config created at ~/.gctx/config.json")
-        print("  - Main branch ready")
+        print(f"  - Active branch: {branch}")
     except Exception as e:
         print(f"✗ Failed to initialize: {e}", file=sys.stderr)
         sys.exit(1)
@@ -56,36 +59,46 @@ def cmd_config_set(args: argparse.Namespace) -> None:
     CLI: gctx config set <key> <value>
     """
     try:
+        key: str = args.key
+        raw_value: str = args.value
+
         branch = GitContextManager.get_active_branch()
+        current_config = ConfigManager.load_for_branch(branch)
         overrides = ConfigManager.get_branch_override(branch)
 
-        value: str | int
-        if args.key == "token_limit":
-            try:
-                value = int(args.value)
-                if value <= 0:
-                    raise ValueError("token_limit must be positive")
-            except ValueError as e:
-                print(f"✗ Invalid value for token_limit: {e}", file=sys.stderr)
-                sys.exit(1)
-        elif args.key == "token_approach":
-            if args.value != "chardiv4":
-                print(
-                    "✗ Invalid token_approach. Only 'chardiv4' is supported.",
-                    file=sys.stderr,
-                )
-                sys.exit(1)
-            value = args.value
-        else:
-            print(f"✗ Unknown config key: {args.key}", file=sys.stderr)
-            print("  Valid keys: token_approach, token_limit")
+        if key not in GctxConfig.model_fields:
+            valid_keys = ", ".join(GctxConfig.model_fields.keys())
+            print(f"✗ Unknown config key: {key}", file=sys.stderr)
+            print(f"  Valid keys: {valid_keys}", file=sys.stderr)
             sys.exit(1)
 
-        # Update overrides
-        overrides[args.key] = value
-        ConfigManager.save_branch_override(branch, overrides)
+        field_info = GctxConfig.model_fields[key]
+        parsed_value: str | int
 
-        print(f"✓ Set {args.key}={value} for branch '{branch}'")
+        try:
+            if field_info.annotation is int:
+                parsed_value = int(raw_value)
+            else:
+                parsed_value = raw_value
+
+            test_config_data = current_config.model_dump()
+            test_config_data[key] = parsed_value
+            GctxConfig(**test_config_data)
+
+        except ValidationError as e:
+            errors = e.errors()
+            for error in errors:
+                if key in str(error["loc"]):
+                    print(f"✗ Invalid value for {key}: {error['msg']}", file=sys.stderr)
+                    sys.exit(1)
+            raise
+        except ValueError as e:
+            print(f"✗ Invalid value for {key}: {e}", file=sys.stderr)
+            sys.exit(1)
+
+        overrides[key] = parsed_value
+        ConfigManager.save_branch_override(branch, overrides)
+        print(f"✓ Set {key}={parsed_value} for branch '{branch}'")
 
     except Exception as e:
         print(f"✗ Failed to set config: {e}", file=sys.stderr)
@@ -112,8 +125,7 @@ def cmd_branch_list(args: argparse.Namespace) -> None:
     """
     try:
         current = GitContextManager.get_active_branch()
-        manager = GitContextManager(current)
-        branches = manager.list_branches()
+        branches = GitContextManager.list_branches()
 
         for branch in branches:
             marker = "*" if branch == current else " "
@@ -130,10 +142,13 @@ def cmd_branch_create(args: argparse.Namespace) -> None:
     CLI: gctx branch create <name> [--from <branch>]
     """
     try:
+        name: str = args.name
+        from_branch: str | None = args.from_branch
+
         current = GitContextManager.get_active_branch()
         manager = GitContextManager(current)
-        sha = manager.create_branch(args.name, args.from_branch)
-        print(f"✓ Created branch '{args.name}' at {sha[:8]}")
+        sha = manager.create_branch(name, from_branch)
+        print(f"✓ Created branch '{name}' at {sha[:8]}")
 
     except Exception as e:
         print(f"✗ Failed to create branch: {e}", file=sys.stderr)
@@ -146,8 +161,10 @@ def cmd_branch_checkout(args: argparse.Namespace) -> None:
     CLI: gctx branch checkout <name>
     """
     try:
-        GitContextManager.checkout_branch(args.name)
-        print(f"✓ Switched to branch '{args.name}'")
+        name: str = args.name
+
+        GitContextManager.checkout_branch(name)
+        print(f"✓ Switched to branch '{name}'")
 
     except Exception as e:
         print(f"✗ Failed to checkout branch: {e}", file=sys.stderr)
@@ -177,16 +194,19 @@ def cmd_update(args: argparse.Namespace) -> None:
           gctx update <message>  (reads from stdin)
     """
     try:
+        message: str = args.message
+        content_arg: str | None = args.content
+
         branch = GitContextManager.get_active_branch()
         manager = GitContextManager(branch)
 
-        if args.content:
-            content = args.content
+        if content_arg:
+            content = content_arg
         else:
             print("Enter new context (Ctrl+D or Ctrl+Z to finish):")
             content = sys.stdin.read()
 
-        sha = manager.write_context(content, args.message)
+        sha = manager.write_context(content, message)
         print(f"✓ Updated context: {sha[:8]}")
 
     except Exception as e:
@@ -201,16 +221,19 @@ def cmd_append(args: argparse.Namespace) -> None:
           gctx append <message>  (reads from stdin)
     """
     try:
+        message: str = args.message
+        text_arg: str | None = args.text
+
         branch = GitContextManager.get_active_branch()
         manager = GitContextManager(branch)
 
-        if args.text:
-            text = args.text
+        if text_arg:
+            text = text_arg
         else:
             print("Enter text to append (Ctrl+D or Ctrl+Z to finish):")
             text = sys.stdin.read()
 
-        sha = manager.append_context(text, args.message)
+        sha = manager.append_context(text, message)
         print(f"✓ Appended to context: {sha[:8]}")
 
     except Exception as e:
@@ -224,9 +247,12 @@ def cmd_history(args: argparse.Namespace) -> None:
     CLI: gctx history [--limit N] [--starting-after SHA]
     """
     try:
+        limit: int = args.limit
+        starting_after: str | None = args.starting_after
+
         branch = GitContextManager.get_active_branch()
         manager = GitContextManager(branch)
-        result = manager.get_history(args.limit, args.starting_after)
+        result = manager.get_history(limit, starting_after)
 
         print(f"# History ({len(result['commits'])} of {result['total_commits']} commits)")
         print()
@@ -252,11 +278,13 @@ def cmd_snapshot(args: argparse.Namespace) -> None:
     CLI: gctx snapshot <sha>
     """
     try:
+        sha: str = args.sha
+
         branch = GitContextManager.get_active_branch()
         manager = GitContextManager(branch)
-        snapshot = manager.get_snapshot(args.sha)
+        snapshot = manager.get_snapshot(sha)
 
-        print(f"# Snapshot: {args.sha}")
+        print(f"# Snapshot: {sha}")
         print(f"# Message: {snapshot['commit_message']}")
         print(f"# Time: {snapshot['timestamp']}")
         print()
@@ -324,35 +352,28 @@ def main() -> None:
     )
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
-    # gctx init
     parser_init = subparsers.add_parser("init", help="Initialize gctx")
+    parser_init.add_argument("branch", help="Initial branch name")
     parser_init.set_defaults(func=cmd_init)
 
-    # gctx config
     parser_config = subparsers.add_parser("config", help="Manage configuration")
     config_subparsers = parser_config.add_subparsers(dest="config_command")
 
-    # gctx config (show)
     parser_config.set_defaults(func=cmd_config_show)
 
-    # gctx config set
     parser_config_set = config_subparsers.add_parser("set", help="Set config value")
     parser_config_set.add_argument("key", help="Config key (token_approach, token_limit)")
     parser_config_set.add_argument("value", help="Config value")
     parser_config_set.set_defaults(func=cmd_config_set)
 
-    # gctx branch
     parser_branch = subparsers.add_parser("branch", help="Manage branches")
     branch_subparsers = parser_branch.add_subparsers(dest="branch_command")
 
-    # gctx branch (show)
     parser_branch.set_defaults(func=cmd_branch_show)
 
-    # gctx branch list
     parser_branch_list = branch_subparsers.add_parser("list", help="List all branches")
     parser_branch_list.set_defaults(func=cmd_branch_list)
 
-    # gctx branch create
     parser_branch_create = branch_subparsers.add_parser("create", help="Create new branch")
     parser_branch_create.add_argument("name", help="Branch name")
     parser_branch_create.add_argument(
@@ -360,43 +381,35 @@ def main() -> None:
     )
     parser_branch_create.set_defaults(func=cmd_branch_create)
 
-    # gctx branch checkout
     parser_branch_checkout = branch_subparsers.add_parser("checkout", help="Checkout branch")
     parser_branch_checkout.add_argument("name", help="Branch name")
     parser_branch_checkout.set_defaults(func=cmd_branch_checkout)
 
-    # gctx read
     parser_read = subparsers.add_parser("read", help="Read current context")
     parser_read.set_defaults(func=cmd_read)
 
-    # gctx update
     parser_update = subparsers.add_parser("update", help="Update context")
     parser_update.add_argument("message", help="Commit message")
     parser_update.add_argument("--content", help="New content (or use stdin)")
     parser_update.set_defaults(func=cmd_update)
 
-    # gctx append
     parser_append = subparsers.add_parser("append", help="Append to context")
     parser_append.add_argument("message", help="Commit message")
     parser_append.add_argument("--text", help="Text to append (or use stdin)")
     parser_append.set_defaults(func=cmd_append)
 
-    # gctx history
     parser_history = subparsers.add_parser("history", help="Show commit history")
     parser_history.add_argument("--limit", type=int, default=10, help="Number of commits")
     parser_history.add_argument("--starting-after", help="Start after this commit SHA")
     parser_history.set_defaults(func=cmd_history)
 
-    # gctx snapshot
     parser_snapshot = subparsers.add_parser("snapshot", help="Show snapshot at commit")
     parser_snapshot.add_argument("sha", help="Commit SHA")
     parser_snapshot.set_defaults(func=cmd_snapshot)
 
-    # gctx validate
     parser_validate = subparsers.add_parser("validate", help="Validate gctx setup")
     parser_validate.set_defaults(func=cmd_validate)
 
-    # Parse and execute
     args = parser.parse_args()
     if hasattr(args, "func"):
         args.func(args)

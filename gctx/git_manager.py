@@ -267,13 +267,22 @@ class GitContextManager:
         except Exception as e:
             raise RuntimeError(f"Failed to get snapshot for commit {commit_sha}: {e}") from e
 
-    def list_branches(self) -> list[str]:
+    @classmethod
+    def list_branches(cls) -> list[str]:
         """List all branch names.
 
         Returns:
             List of branch names
+
+        Raises:
+            RuntimeError: If repository doesn't exist
         """
-        return [ref.name for ref in self.repo.heads]
+        repo_path = ConfigManager.REPO_PATH
+        try:
+            repo = Repo(repo_path)
+            return [ref.name for ref in repo.heads]
+        except (InvalidGitRepositoryError, Exception) as e:
+            raise RuntimeError(f"Failed to list branches: {e}") from e
 
     def create_branch(self, name: str, from_branch: str | None = None) -> str:
         """Create new branch.
@@ -288,11 +297,11 @@ class GitContextManager:
         Raises:
             ValueError: If branch already exists
         """
-        if name in self.list_branches():
+        if name in GitContextManager.list_branches():
             raise ValueError(f"Branch '{name}' already exists")
 
         if from_branch:
-            if from_branch not in self.list_branches():
+            if from_branch not in GitContextManager.list_branches():
                 raise ValueError(f"Source branch '{from_branch}' does not exist")
             source = self.repo.heads[from_branch]
         else:
