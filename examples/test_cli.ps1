@@ -16,8 +16,8 @@ Write-Host ""
 
 # Test 1: Initialize
 Write-Host "Test 1: Initialize gctx" -ForegroundColor Cyan
-Write-Host "Command: gctx init" -ForegroundColor Gray
-uv run gctx init
+Write-Host "Command: gctx init main" -ForegroundColor Gray
+uv run gctx init main
 Write-Host ""
 
 # Test 2: Validate setup

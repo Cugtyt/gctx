@@ -26,8 +26,8 @@ uv pip install -e .
 ## Quick Start
 
 ```bash
-# Initialize gctx
-uv run gctx init
+# Initialize gctx with a branch name
+uv run gctx init main
 
 # Add some context
 echo "Project started" | uv run gctx update "Initial context"
@@ -108,7 +108,7 @@ Branch configs override global settings. The `token_approach` currently supports
 
 ### Initialization
 ```bash
-gctx init                    # Initialize gctx structure
+gctx init <branch>           # Initialize gctx structure with initial branch
 gctx validate                # Validate setup
 ```
 
