@@ -70,6 +70,16 @@ class SnapshotResult:
     error: str = ""
 
 
+@dataclass(frozen=True)
+class SearchResult:
+    """Result from searching history with error handling."""
+
+    success: bool
+    commits: list[CommitInfo] = field(default_factory=list)
+    total_matches: int = 0
+    error: str = ""
+
+
 def setup_mcp(branch: str, config_override: GctxConfig | None = None) -> FastMCP:
     """Initialize tools for a specific branch.
 
@@ -392,6 +402,43 @@ organization and compression when token limits are approached.
             except Exception as e:
                 logger.error(f"Failed to get snapshot: {e}")
                 return SnapshotResult(
+                    success=False,
+                    error=str(e),
+                )
+
+    @mcp.tool()
+    async def search_context_history(keywords: list[str], limit: int = 100) -> SearchResult:
+        """Search commit history for keywords in messages or content.
+
+        Searches through commit history and returns commits where any keyword
+        matches either the commit message or the context content.
+
+        Args:
+            keywords: List of keywords to search for (case-insensitive)
+            limit: Maximum number of commits to search (default: 100)
+
+        Returns:
+            SearchResult containing:
+            - success (bool): True if search succeeded
+            - commits (list[CommitInfo]): Matching commits with sha, message, timestamp
+            - total_matches (int): Number of matching commits found
+            - error (str): Error message if failed
+        """
+        with BranchLogger(branch) as logger:
+            logger.info(f"Tool called: search_context_history (keywords={keywords}, limit={limit})")
+            try:
+                with GitContextManager(branch) as manager:
+                    result = await asyncio.to_thread(manager.search_history, keywords, limit)
+                    logger.info(f"Found {result.total_matches} matches")
+
+                    return SearchResult(
+                        success=True,
+                        commits=result.commits,
+                        total_matches=result.total_matches,
+                    )
+            except Exception as e:
+                logger.error(f"Failed to search history: {e}")
+                return SearchResult(
                     success=False,
                     error=str(e),
                 )

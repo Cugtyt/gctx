@@ -293,6 +293,34 @@ def cmd_snapshot(args: argparse.Namespace) -> None:
         sys.exit(1)
 
 
+def cmd_search(args: argparse.Namespace) -> None:
+    """Search commit history by keywords.
+
+    CLI: gctx search <keyword> [keyword...] [--limit N]
+    """
+    try:
+        keywords: list[str] = args.keywords
+        limit: int = args.limit
+
+        branch = GitContextManager.get_active_branch()
+        with GitContextManager(branch) as manager:
+            result = manager.search_history(keywords, limit)
+
+            print(f"# Searched {limit} commits for: {', '.join(keywords)}")
+            print(f"# Found {result.total_matches} matches")
+            print()
+
+            for commit in result.commits:
+                sha_short = commit.sha[:8]
+                print(f"{sha_short} - {commit.timestamp}")
+                print(f"  {commit.message}")
+                print()
+
+    except Exception as e:
+        print(f"✗ Failed to search history: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
 def cmd_validate(args: argparse.Namespace) -> None:
     """Validate gctx setup.
 
@@ -404,6 +432,11 @@ def main() -> None:
     parser_snapshot = subparsers.add_parser("snapshot", help="Show snapshot at commit")
     parser_snapshot.add_argument("sha", help="Commit SHA")
     parser_snapshot.set_defaults(func=cmd_snapshot)
+
+    parser_search = subparsers.add_parser("search", help="Search commit history")
+    parser_search.add_argument("keywords", nargs="+", help="Keywords to search for")
+    parser_search.add_argument("--limit", type=int, default=100, help="Max commits to search")
+    parser_search.set_defaults(func=cmd_search)
 
     parser_validate = subparsers.add_parser("validate", help="Validate gctx setup")
     parser_validate.set_defaults(func=cmd_validate)

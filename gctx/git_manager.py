@@ -21,8 +21,8 @@ class CommitInfo:
 
 
 @dataclass(frozen=True)
-class HistoryResult:
-    """Type for history result."""
+class History:
+    """Type for history."""
 
     commits: list[CommitInfo]
     total_commits: int
@@ -30,12 +30,20 @@ class HistoryResult:
 
 
 @dataclass(frozen=True)
-class SnapshotResult:
-    """Type for snapshot result."""
+class Snapshot:
+    """Type for snapshot."""
 
     content: str
     commit_message: str
     timestamp: str
+
+
+@dataclass(frozen=True)
+class Search:
+    """Type for search."""
+
+    commits: list[CommitInfo]
+    total_matches: int
 
 
 class GitContextManager:
@@ -240,7 +248,7 @@ class GitContextManager:
 
         return self.write_context(new_content, message)
 
-    def get_history(self, limit: int = 10, starting_after: str | None = None) -> HistoryResult:
+    def get_history(self, limit: int = 10, starting_after: str | None = None) -> History:
         """Get commit history for branch.
 
         Args:
@@ -248,7 +256,7 @@ class GitContextManager:
             starting_after: SHA of commit to start after, or None for most recent
 
         Returns:
-            HistoryResult with commits list, total_commits, has_more flag
+            History with commits list, total_commits, has_more flag
 
         Raises:
             RuntimeError: If getting history fails
@@ -264,7 +272,7 @@ class GitContextManager:
             if start.parents:
                 commits_iter = self.repo.iter_commits(start.parents[0], max_count=limit)
             else:
-                return HistoryResult(commits=[], total_commits=total, has_more=False)
+                return History(commits=[], total_commits=total, has_more=False)
         else:
             commits_iter = self.repo.iter_commits(self.branch, max_count=limit)
 
@@ -286,16 +294,16 @@ class GitContextManager:
             has_more = len(last.parents) > 0
 
         self.logger.info(f"Retrieved {len(commits)} commits (total={total}, has_more={has_more})")
-        return HistoryResult(commits=commits, total_commits=total, has_more=has_more)
+        return History(commits=commits, total_commits=total, has_more=has_more)
 
-    def get_snapshot(self, commit_sha: str) -> SnapshotResult:
+    def get_snapshot(self, commit_sha: str) -> Snapshot:
         """Get context content from specific commit.
 
         Args:
             commit_sha: Git commit SHA to retrieve
 
         Returns:
-            SnapshotResult with content, commit_message, and timestamp
+            Snapshot with content, commit_message, and timestamp
 
         Raises:
             RuntimeError: If commit doesn't exist or file not found
@@ -309,7 +317,7 @@ class GitContextManager:
             timestamp: str = datetime.fromtimestamp(commit.committed_date).isoformat()
 
             self.logger.info(f"Retrieved snapshot: {len(content)} characters")
-            return SnapshotResult(
+            return Snapshot(
                 content=content,
                 commit_message=commit_message,
                 timestamp=timestamp,
@@ -317,6 +325,67 @@ class GitContextManager:
         except Exception as e:
             self.logger.error(f"Failed to get snapshot: {e}")
             raise RuntimeError(f"Failed to get snapshot for commit {commit_sha}: {e}") from e
+
+    def search_history(self, keywords: list[str], limit: int = 100) -> Search:
+        """Search commit history for keywords in messages or content.
+
+        Searches through commit history and returns commits where any keyword
+        matches either the commit message or the context content.
+
+        Args:
+            keywords: List of keywords to search for (case-insensitive)
+            limit: Maximum number of commits to search (default: 100)
+
+        Returns:
+            Search with matching commits and total count
+
+        Raises:
+            RuntimeError: If search fails
+        """
+        try:
+            self.logger.info(f"Searching history for keywords: {keywords} (limit={limit})")
+
+            if not keywords:
+                return Search(commits=[], total_matches=0)
+
+            normalized_keywords = [kw.lower() for kw in keywords]
+
+            matching_commits: list[CommitInfo] = []
+            searched_count = 0
+
+            for commit in self.repo.iter_commits(self.branch):
+                if searched_count >= limit:
+                    break
+                searched_count += 1
+
+                commit_message = str(commit.message).strip()
+
+                try:
+                    blob = commit.tree / self.context_file
+                    content = blob.data_stream.read().decode("utf-8")
+                except Exception:
+                    continue
+
+                search_text = (commit_message + "\n" + content).lower()
+                if any(keyword in search_text for keyword in normalized_keywords):
+                    matching_commits.append(
+                        CommitInfo(
+                            sha=commit.hexsha,
+                            message=commit_message,
+                            timestamp=datetime.fromtimestamp(commit.committed_date).isoformat(),
+                        )
+                    )
+
+            self.logger.info(
+                f"Found {len(matching_commits)} matches out of {searched_count} commits searched"
+            )
+            return Search(
+                commits=matching_commits,
+                total_matches=len(matching_commits),
+            )
+        except Exception as e:
+            self.logger.error(f"Failed to search history: {e}")
+            raise RuntimeError(f"Failed to search history: {e}") from e
 
     @classmethod
     def list_branches(cls) -> list[str]:

@@ -82,3 +82,38 @@ def test_git_manager_snapshot(temp_gctx_home: Path, monkeypatch: MonkeyPatch) ->
         snapshot = manager.get_snapshot(sha1)
         assert snapshot.content == content1
         assert snapshot.commit_message == "Commit 1"
+
+
+def test_git_manager_search_history(temp_gctx_home: Path, monkeypatch: MonkeyPatch) -> None:
+    """Test searching commit history by keywords."""
+    monkeypatch.setattr(ConfigManager, "GCTX_HOME", temp_gctx_home)
+    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gctx_home / "repo")
+
+    with GitContextManager("test") as manager:
+        # Create commits with different content and messages
+        manager.write_context("Python code here", "Add python implementation")
+        manager.write_context("JavaScript code here", "Add javascript feature")
+        manager.write_context("Rust code here", "Add rust module")
+        manager.write_context("More python examples", "Update documentation")
+
+        # Search for "python" - should match commit message and content
+        result = manager.search_history(["python"])
+        assert result.total_matches == 2
+        assert any("python" in c.message.lower() for c in result.commits)
+
+        # Search for "javascript"
+        result = manager.search_history(["javascript"])
+        assert result.total_matches == 1
+        assert "javascript" in result.commits[0].message.lower()
+
+        # Search for multiple keywords
+        result = manager.search_history(["python", "rust"])
+        assert result.total_matches == 3
+
+        # Search with no keywords
+        result = manager.search_history([])
+        assert result.total_matches == 0
+
+        # Search with limit
+        result = manager.search_history(["code"], limit=2)
+        assert len(result.commits) <= 2
