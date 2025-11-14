@@ -8,6 +8,7 @@ from pydantic import ValidationError
 
 from gnote.config import GnoteConfig
 from gnote.config_manager import ConfigManager
+from gnote.git_manager import GitNoteManager
 
 
 def cmd_init(args: argparse.Namespace) -> None:

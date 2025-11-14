@@ -7,7 +7,7 @@ from mcp.server.fastmcp import FastMCP
 
 from gnote.config import GnoteConfig
 from gnote.config_manager import ConfigManager
-from gnote.git_manager import CommitInfo
+from gnote.git_manager import CommitInfo, GitNoteManager
 from gnote.logger import BranchLogger
 from gnote.token_counter import TokenCounter
 
