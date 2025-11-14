@@ -10,13 +10,13 @@ from pytest import MonkeyPatch
 
 
 @pytest.fixture
-def temp_gctx_home(monkeypatch: MonkeyPatch) -> Generator[Path]:
-    """Create a temporary .gctx directory for testing."""
+def temp_gnote_home(monkeypatch: MonkeyPatch) -> Generator[Path]:
+    """Create a temporary .gnote directory for testing."""
     with tempfile.TemporaryDirectory() as tmpdir:
-        gctx_home = Path(tmpdir) / ".gctx"
-        gctx_home.mkdir()
+        gnote_home = Path(tmpdir) / ".gnote"
+        gnote_home.mkdir()
         monkeypatch.setenv("HOME", tmpdir)
         monkeypatch.setenv("USERPROFILE", tmpdir)
-        yield gctx_home
-        if gctx_home.exists():
-            shutil.rmtree(gctx_home, ignore_errors=True)
+        yield gnote_home
+        if gnote_home.exists():
+            shutil.rmtree(gnote_home, ignore_errors=True)

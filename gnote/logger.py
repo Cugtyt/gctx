@@ -1,4 +1,4 @@
-"""Logging utilities for gctx."""
+"""Logging utilities for gnote."""
 
 import logging
 from pathlib import Path
@@ -15,12 +15,12 @@ class BranchLogger:
             branch: Branch name
         """
         self.branch = branch
-        self.logger_name = f"gctx.{branch}"
+        self.logger_name = f"gnote.{branch}"
         self.logger = logging.getLogger(self.logger_name)
 
         if not self.logger.handlers:
-            gctx_home = Path.home() / ".gctx"
-            log_path = gctx_home / "logs" / f"{branch}.log"
+            gnote_home = Path.home() / ".gnote"
+            log_path = gnote_home / "logs" / f"{branch}.log"
             log_path.parent.mkdir(parents=True, exist_ok=True)
 
             self.logger.setLevel(logging.INFO)

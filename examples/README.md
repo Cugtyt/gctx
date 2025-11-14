@@ -1,6 +1,6 @@
 # Examples Directory
 
-This directory contains test and demonstration scripts for gctx.
+This directory contains test and demonstration scripts for gnote.
 
 ## Files
 
@@ -50,7 +50,7 @@ pwsh examples/test_cli.ps1
 
 # The script will:
 # 1. Clean up any previous test data
-# 2. Initialize gctx
+# 2. Initialize gnote
 # 3. Run through all CLI commands
 # 4. Show results with colored output
 ```
@@ -69,15 +69,15 @@ uv run python examples/test_mcp.py
 
 ## Test Data
 
-Both scripts use the `~/.gctx` directory for test data.
+Both scripts use the `~/.gnote` directory for test data.
 
 **To clean up after testing:**
 ```powershell
 # Windows/PowerShell
-Remove-Item -Recurse -Force ~/.gctx
+Remove-Item -Recurse -Force ~/.gnote
 
 # Linux/macOS
-rm -rf ~/.gctx
+rm -rf ~/.gnote
 ```
 
 ## Expected Output
@@ -99,13 +99,13 @@ rm -rf ~/.gctx
 
 - Both tests are safe to run multiple times
 - CLI test automatically cleans up before starting
-- MCP test uses the existing `~/.gctx` or creates new
-- All test operations are logged to `~/.gctx/logs/master.log`
+- MCP test uses the existing `~/.gnote` or creates new
+- All test operations are logged to `~/.gnote/logs/master.log`
 
 ## Troubleshooting
 
 If tests fail:
-1. Ensure gctx is installed: `uv pip install -e .`
+1. Ensure gnote is installed: `uv pip install -e .`
 2. Check dependencies: `uv sync`
-3. Verify setup: `uv run gctx validate`
-4. Check logs: `cat ~/.gctx/logs/master.log`
+3. Verify setup: `uv run gnote validate`
+4. Check logs: `cat ~/.gnote/logs/master.log`

@@ -1,7 +1,7 @@
 """Tests for token_counter module."""
 
-from gctx.config import TokenApproach
-from gctx.token_counter import TokenCounter
+from gnote.config import TokenApproach
+from gnote.token_counter import TokenCounter
 
 
 def test_token_counter_chardiv4() -> None:

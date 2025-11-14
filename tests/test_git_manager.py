@@ -2,26 +2,25 @@
 
 from pathlib import Path
 
+from gnote.config_manager import ConfigManager
+from gnote.git_manager import GitContextManager
 from pytest import MonkeyPatch
 
-from gctx.config_manager import ConfigManager
-from gctx.git_manager import GitContextManager
 
-
-def test_git_manager_initialization(temp_gctx_home: Path, monkeypatch: MonkeyPatch) -> None:
+def test_git_manager_initialization(temp_gnote_home: Path, monkeypatch: MonkeyPatch) -> None:
     """Test GitContextManager initialization."""
-    monkeypatch.setattr(ConfigManager, "GCTX_HOME", temp_gctx_home)
-    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gctx_home / "repo")
+    monkeypatch.setattr(ConfigManager, "GNOTE_HOME", temp_gnote_home)
+    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gnote_home / "repo")
 
     with GitContextManager("test") as manager:
         assert manager.branch == "test"
-        assert (temp_gctx_home / "repo" / ".git").exists()
+        assert (temp_gnote_home / "repo" / ".git").exists()
 
 
-def test_git_manager_write_and_read(temp_gctx_home: Path, monkeypatch: MonkeyPatch) -> None:
+def test_git_manager_write_and_read(temp_gnote_home: Path, monkeypatch: MonkeyPatch) -> None:
     """Test writing and reading context."""
-    monkeypatch.setattr(ConfigManager, "GCTX_HOME", temp_gctx_home)
-    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gctx_home / "repo")
+    monkeypatch.setattr(ConfigManager, "GNOTE_HOME", temp_gnote_home)
+    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gnote_home / "repo")
 
     with GitContextManager("test") as manager:
         content = "Test context content"
@@ -33,10 +32,10 @@ def test_git_manager_write_and_read(temp_gctx_home: Path, monkeypatch: MonkeyPat
         assert read_content == content
 
 
-def test_git_manager_append(temp_gctx_home: Path, monkeypatch: MonkeyPatch) -> None:
+def test_git_manager_append(temp_gnote_home: Path, monkeypatch: MonkeyPatch) -> None:
     """Test appending to context."""
-    monkeypatch.setattr(ConfigManager, "GCTX_HOME", temp_gctx_home)
-    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gctx_home / "repo")
+    monkeypatch.setattr(ConfigManager, "GNOTE_HOME", temp_gnote_home)
+    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gnote_home / "repo")
 
     with GitContextManager("test") as manager:
         initial_content = "Initial content"
@@ -50,10 +49,10 @@ def test_git_manager_append(temp_gctx_home: Path, monkeypatch: MonkeyPatch) -> N
         assert read_content.replace("\r\n", "\n") == expected
 
 
-def test_git_manager_history(temp_gctx_home: Path, monkeypatch: MonkeyPatch) -> None:
+def test_git_manager_history(temp_gnote_home: Path, monkeypatch: MonkeyPatch) -> None:
     """Test getting commit history."""
-    monkeypatch.setattr(ConfigManager, "GCTX_HOME", temp_gctx_home)
-    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gctx_home / "repo")
+    monkeypatch.setattr(ConfigManager, "GNOTE_HOME", temp_gnote_home)
+    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gnote_home / "repo")
 
     with GitContextManager("test") as manager:
         manager.write_context("Content 1", "Commit 1")
@@ -68,10 +67,10 @@ def test_git_manager_history(temp_gctx_home: Path, monkeypatch: MonkeyPatch) -> 
         assert history.commits[2].message == "Commit 1"
 
 
-def test_git_manager_snapshot(temp_gctx_home: Path, monkeypatch: MonkeyPatch) -> None:
+def test_git_manager_snapshot(temp_gnote_home: Path, monkeypatch: MonkeyPatch) -> None:
     """Test getting snapshot from commit."""
-    monkeypatch.setattr(ConfigManager, "GCTX_HOME", temp_gctx_home)
-    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gctx_home / "repo")
+    monkeypatch.setattr(ConfigManager, "GNOTE_HOME", temp_gnote_home)
+    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gnote_home / "repo")
 
     with GitContextManager("test") as manager:
         content1 = "Content 1"
@@ -84,10 +83,10 @@ def test_git_manager_snapshot(temp_gctx_home: Path, monkeypatch: MonkeyPatch) ->
         assert snapshot.commit_message == "Commit 1"
 
 
-def test_git_manager_search_history(temp_gctx_home: Path, monkeypatch: MonkeyPatch) -> None:
+def test_git_manager_search_history(temp_gnote_home: Path, monkeypatch: MonkeyPatch) -> None:
     """Test searching commit history by keywords."""
-    monkeypatch.setattr(ConfigManager, "GCTX_HOME", temp_gctx_home)
-    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gctx_home / "repo")
+    monkeypatch.setattr(ConfigManager, "GNOTE_HOME", temp_gnote_home)
+    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gnote_home / "repo")
 
     with GitContextManager("test") as manager:
         # Create commits with different content and messages

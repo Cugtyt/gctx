@@ -1,4 +1,4 @@
-"""Configuration data model for gctx."""
+"""Configuration data model for gnote."""
 
 from enum import Enum
 
@@ -11,7 +11,7 @@ class TokenApproach(str, Enum):
     CHARDIV4 = "chardiv4"
 
 
-class GctxConfig(BaseModel):
+class GnoteConfig(BaseModel):
     """Configuration data model.
 
     Attributes:

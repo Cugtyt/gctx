@@ -4,18 +4,17 @@ import asyncio
 from pathlib import Path
 
 import pytest
+from gnote.config import GnoteConfig
+from gnote.config_manager import ConfigManager
+from gnote.git_manager import GitContextManager
+from gnote.mcp import setup_mcp
 from pytest import MonkeyPatch
 
-from gctx.config import GctxConfig
-from gctx.config_manager import ConfigManager
-from gctx.git_manager import GitContextManager
-from gctx.mcp import setup_mcp
 
-
-def test_mcp_setup(temp_gctx_home: Path, monkeypatch: MonkeyPatch) -> None:
+def test_mcp_setup(temp_gnote_home: Path, monkeypatch: MonkeyPatch) -> None:
     """Test MCP server setup and read_context tool."""
-    monkeypatch.setattr(ConfigManager, "GCTX_HOME", temp_gctx_home)
-    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gctx_home / "repo")
+    monkeypatch.setattr(ConfigManager, "GNOTE_HOME", temp_gnote_home)
+    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gnote_home / "repo")
 
     initial_content = "Initial test content"
     with GitContextManager("test") as manager:
@@ -24,7 +23,7 @@ def test_mcp_setup(temp_gctx_home: Path, monkeypatch: MonkeyPatch) -> None:
     mcp = setup_mcp("test")
 
     assert mcp is not None
-    assert mcp.name == "gctx"
+    assert mcp.name == "gnote"
 
     result = asyncio.run(mcp._tool_manager._tools["read_context"].fn())
     assert result.success is True
@@ -34,10 +33,10 @@ def test_mcp_setup(temp_gctx_home: Path, monkeypatch: MonkeyPatch) -> None:
 
 
 @pytest.mark.asyncio
-async def test_mcp_read_context_tool(temp_gctx_home: Path, monkeypatch: MonkeyPatch) -> None:
+async def test_mcp_read_context_tool(temp_gnote_home: Path, monkeypatch: MonkeyPatch) -> None:
     """Test read_context tool actually works."""
-    monkeypatch.setattr(ConfigManager, "GCTX_HOME", temp_gctx_home)
-    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gctx_home / "repo")
+    monkeypatch.setattr(ConfigManager, "GNOTE_HOME", temp_gnote_home)
+    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gnote_home / "repo")
 
     test_content = "Test context content"
     with GitContextManager("test") as manager:
@@ -54,10 +53,10 @@ async def test_mcp_read_context_tool(temp_gctx_home: Path, monkeypatch: MonkeyPa
 
 
 @pytest.mark.asyncio
-async def test_mcp_update_context_tool(temp_gctx_home: Path, monkeypatch: MonkeyPatch) -> None:
+async def test_mcp_update_context_tool(temp_gnote_home: Path, monkeypatch: MonkeyPatch) -> None:
     """Test update_context tool actually works."""
-    monkeypatch.setattr(ConfigManager, "GCTX_HOME", temp_gctx_home)
-    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gctx_home / "repo")
+    monkeypatch.setattr(ConfigManager, "GNOTE_HOME", temp_gnote_home)
+    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gnote_home / "repo")
 
     with GitContextManager("test") as manager:
         manager.write_context("Initial content", "Initial")
@@ -78,10 +77,10 @@ async def test_mcp_update_context_tool(temp_gctx_home: Path, monkeypatch: Monkey
 
 
 @pytest.mark.asyncio
-async def test_mcp_append_to_context_tool(temp_gctx_home: Path, monkeypatch: MonkeyPatch) -> None:
+async def test_mcp_append_to_context_tool(temp_gnote_home: Path, monkeypatch: MonkeyPatch) -> None:
     """Test append_to_context tool actually works."""
-    monkeypatch.setattr(ConfigManager, "GCTX_HOME", temp_gctx_home)
-    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gctx_home / "repo")
+    monkeypatch.setattr(ConfigManager, "GNOTE_HOME", temp_gnote_home)
+    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gnote_home / "repo")
 
     initial_content = "Initial content"
     with GitContextManager("test") as manager:
@@ -104,10 +103,10 @@ async def test_mcp_append_to_context_tool(temp_gctx_home: Path, monkeypatch: Mon
 
 
 @pytest.mark.asyncio
-async def test_mcp_history_tool(temp_gctx_home: Path, monkeypatch: MonkeyPatch) -> None:
+async def test_mcp_history_tool(temp_gnote_home: Path, monkeypatch: MonkeyPatch) -> None:
     """Test get_context_history tool actually works."""
-    monkeypatch.setattr(ConfigManager, "GCTX_HOME", temp_gctx_home)
-    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gctx_home / "repo")
+    monkeypatch.setattr(ConfigManager, "GNOTE_HOME", temp_gnote_home)
+    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gnote_home / "repo")
 
     with GitContextManager("test") as manager:
         manager.write_context("Content 1", "First commit")
@@ -128,10 +127,10 @@ async def test_mcp_history_tool(temp_gctx_home: Path, monkeypatch: MonkeyPatch) 
 
 
 @pytest.mark.asyncio
-async def test_mcp_search_tool(temp_gctx_home: Path, monkeypatch: MonkeyPatch) -> None:
+async def test_mcp_search_tool(temp_gnote_home: Path, monkeypatch: MonkeyPatch) -> None:
     """Test search_context_history tool actually works."""
-    monkeypatch.setattr(ConfigManager, "GCTX_HOME", temp_gctx_home)
-    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gctx_home / "repo")
+    monkeypatch.setattr(ConfigManager, "GNOTE_HOME", temp_gnote_home)
+    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gnote_home / "repo")
 
     with GitContextManager("test") as manager:
         manager.write_context("Python code here", "Add Python")
@@ -148,19 +147,19 @@ async def test_mcp_search_tool(temp_gctx_home: Path, monkeypatch: MonkeyPatch) -
     assert result.error == ""
 
 
-def test_mcp_setup_with_config_override(temp_gctx_home: Path, monkeypatch: MonkeyPatch) -> None:
+def test_mcp_setup_with_config_override(temp_gnote_home: Path, monkeypatch: MonkeyPatch) -> None:
     """Test MCP server setup with config override."""
-    monkeypatch.setattr(ConfigManager, "GCTX_HOME", temp_gctx_home)
-    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gctx_home / "repo")
+    monkeypatch.setattr(ConfigManager, "GNOTE_HOME", temp_gnote_home)
+    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gnote_home / "repo")
 
     with GitContextManager("test") as manager:
         manager.write_context("Initial content", "Initial")
 
-    custom_config = GctxConfig(token_limit=15000)
+    custom_config = GnoteConfig(token_limit=15000)
     mcp = setup_mcp("test", config_override=custom_config)
 
     assert mcp is not None
-    assert mcp.name == "gctx"
+    assert mcp.name == "gnote"
 
     tool_names = set(mcp._tool_manager._tools.keys())
     expected_tools = {
@@ -174,10 +173,10 @@ def test_mcp_setup_with_config_override(temp_gctx_home: Path, monkeypatch: Monke
     assert expected_tools.issubset(tool_names)
 
 
-def test_mcp_with_different_branches(temp_gctx_home: Path, monkeypatch: MonkeyPatch) -> None:
+def test_mcp_with_different_branches(temp_gnote_home: Path, monkeypatch: MonkeyPatch) -> None:
     """Test MCP server works with different branches."""
-    monkeypatch.setattr(ConfigManager, "GCTX_HOME", temp_gctx_home)
-    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gctx_home / "repo")
+    monkeypatch.setattr(ConfigManager, "GNOTE_HOME", temp_gnote_home)
+    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gnote_home / "repo")
 
     with GitContextManager("master") as manager:
         manager.write_context("Master content", "Initial")
@@ -187,21 +186,21 @@ def test_mcp_with_different_branches(temp_gctx_home: Path, monkeypatch: MonkeyPa
 
     mcp_master = setup_mcp("master")
     assert mcp_master is not None
-    assert mcp_master.name == "gctx"
+    assert mcp_master.name == "gnote"
 
     mcp_develop = setup_mcp("develop")
     assert mcp_develop is not None
-    assert mcp_develop.name == "gctx"
+    assert mcp_develop.name == "gnote"
 
     tool_names_master = set(mcp_master._tool_manager._tools.keys())
     tool_names_develop = set(mcp_develop._tool_manager._tools.keys())
     assert tool_names_master == tool_names_develop
 
 
-def test_mcp_context_manager_cleanup(temp_gctx_home: Path, monkeypatch: MonkeyPatch) -> None:
+def test_mcp_context_manager_cleanup(temp_gnote_home: Path, monkeypatch: MonkeyPatch) -> None:
     """Test that MCP tools properly use context managers."""
-    monkeypatch.setattr(ConfigManager, "GCTX_HOME", temp_gctx_home)
-    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gctx_home / "repo")
+    monkeypatch.setattr(ConfigManager, "GNOTE_HOME", temp_gnote_home)
+    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gnote_home / "repo")
 
     with GitContextManager("test") as manager:
         manager.write_context("Test content", "Initial")
@@ -211,7 +210,7 @@ def test_mcp_context_manager_cleanup(temp_gctx_home: Path, monkeypatch: MonkeyPa
     mcp = setup_mcp("test")
 
     assert mcp is not None
-    assert mcp.name == "gctx"
+    assert mcp.name == "gnote"
 
     tool_names = set(mcp._tool_manager._tools.keys())
     assert "read_context" in tool_names
@@ -219,11 +218,11 @@ def test_mcp_context_manager_cleanup(temp_gctx_home: Path, monkeypatch: MonkeyPa
 
 
 def test_mcp_setup_with_guidance_tool_enabled(
-    temp_gctx_home: Path, monkeypatch: MonkeyPatch
+    temp_gnote_home: Path, monkeypatch: MonkeyPatch
 ) -> None:
     """Test MCP server setup with guidance tool enabled."""
-    monkeypatch.setattr(ConfigManager, "GCTX_HOME", temp_gctx_home)
-    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gctx_home / "repo")
+    monkeypatch.setattr(ConfigManager, "GNOTE_HOME", temp_gnote_home)
+    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gnote_home / "repo")
 
     with GitContextManager("test") as manager:
         manager.write_context("Initial content", "Initial")
@@ -231,18 +230,18 @@ def test_mcp_setup_with_guidance_tool_enabled(
     mcp = setup_mcp("test", enable_guidance_tool=True)
 
     assert mcp is not None
-    assert mcp.name == "gctx"
+    assert mcp.name == "gnote"
 
     tool_names = set(mcp._tool_manager._tools.keys())
     assert "guidance" in tool_names
 
 
 def test_mcp_setup_with_guidance_tool_disabled(
-    temp_gctx_home: Path, monkeypatch: MonkeyPatch
+    temp_gnote_home: Path, monkeypatch: MonkeyPatch
 ) -> None:
     """Test MCP server setup with guidance tool disabled (default)."""
-    monkeypatch.setattr(ConfigManager, "GCTX_HOME", temp_gctx_home)
-    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gctx_home / "repo")
+    monkeypatch.setattr(ConfigManager, "GNOTE_HOME", temp_gnote_home)
+    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gnote_home / "repo")
 
     with GitContextManager("test") as manager:
         manager.write_context("Initial content", "Initial")
@@ -250,7 +249,7 @@ def test_mcp_setup_with_guidance_tool_disabled(
     mcp = setup_mcp("test", enable_guidance_tool=False)
 
     assert mcp is not None
-    assert mcp.name == "gctx"
+    assert mcp.name == "gnote"
 
     tool_names = set(mcp._tool_manager._tools.keys())
     assert "guidance" not in tool_names

@@ -3,9 +3,7 @@
 import argparse
 from pathlib import Path
 
-from pytest import CaptureFixture, MonkeyPatch
-
-from gctx.cli import (
+from gnote.cli import (
     cmd_append,
     cmd_branch_create,
     cmd_branch_list,
@@ -14,16 +12,17 @@ from gctx.cli import (
     cmd_snapshot,
     cmd_update,
 )
-from gctx.config_manager import ConfigManager
-from gctx.git_manager import GitContextManager
+from gnote.config_manager import ConfigManager
+from gnote.git_manager import GitContextManager
+from pytest import CaptureFixture, MonkeyPatch
 
 
 def test_cli_read(
-    temp_gctx_home: Path, monkeypatch: MonkeyPatch, capsys: CaptureFixture[str]
+    temp_gnote_home: Path, monkeypatch: MonkeyPatch, capsys: CaptureFixture[str]
 ) -> None:
     """Test CLI read command."""
-    monkeypatch.setattr(ConfigManager, "GCTX_HOME", temp_gctx_home)
-    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gctx_home / "repo")
+    monkeypatch.setattr(ConfigManager, "GNOTE_HOME", temp_gnote_home)
+    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gnote_home / "repo")
 
     with GitContextManager("master") as manager:
         manager.write_context("Test content", "Initial")
@@ -35,11 +34,11 @@ def test_cli_read(
 
 
 def test_cli_update(
-    temp_gctx_home: Path, monkeypatch: MonkeyPatch, capsys: CaptureFixture[str]
+    temp_gnote_home: Path, monkeypatch: MonkeyPatch, capsys: CaptureFixture[str]
 ) -> None:
     """Test CLI update command."""
-    monkeypatch.setattr(ConfigManager, "GCTX_HOME", temp_gctx_home)
-    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gctx_home / "repo")
+    monkeypatch.setattr(ConfigManager, "GNOTE_HOME", temp_gnote_home)
+    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gnote_home / "repo")
 
     with GitContextManager("master") as manager:
         manager.write_context("Initial", "Initial")
@@ -55,11 +54,11 @@ def test_cli_update(
 
 
 def test_cli_append(
-    temp_gctx_home: Path, monkeypatch: MonkeyPatch, capsys: CaptureFixture[str]
+    temp_gnote_home: Path, monkeypatch: MonkeyPatch, capsys: CaptureFixture[str]
 ) -> None:
     """Test CLI append command."""
-    monkeypatch.setattr(ConfigManager, "GCTX_HOME", temp_gctx_home)
-    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gctx_home / "repo")
+    monkeypatch.setattr(ConfigManager, "GNOTE_HOME", temp_gnote_home)
+    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gnote_home / "repo")
 
     with GitContextManager("master") as manager:
         manager.write_context("Initial", "Initial")
@@ -76,11 +75,11 @@ def test_cli_append(
 
 
 def test_cli_history(
-    temp_gctx_home: Path, monkeypatch: MonkeyPatch, capsys: CaptureFixture[str]
+    temp_gnote_home: Path, monkeypatch: MonkeyPatch, capsys: CaptureFixture[str]
 ) -> None:
     """Test CLI history command."""
-    monkeypatch.setattr(ConfigManager, "GCTX_HOME", temp_gctx_home)
-    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gctx_home / "repo")
+    monkeypatch.setattr(ConfigManager, "GNOTE_HOME", temp_gnote_home)
+    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gnote_home / "repo")
 
     with GitContextManager("master") as manager:
         manager.write_context("Content 1", "Commit 1")
@@ -96,11 +95,11 @@ def test_cli_history(
 
 
 def test_cli_snapshot(
-    temp_gctx_home: Path, monkeypatch: MonkeyPatch, capsys: CaptureFixture[str]
+    temp_gnote_home: Path, monkeypatch: MonkeyPatch, capsys: CaptureFixture[str]
 ) -> None:
     """Test CLI snapshot command."""
-    monkeypatch.setattr(ConfigManager, "GCTX_HOME", temp_gctx_home)
-    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gctx_home / "repo")
+    monkeypatch.setattr(ConfigManager, "GNOTE_HOME", temp_gnote_home)
+    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gnote_home / "repo")
 
     with GitContextManager("master") as manager:
         sha = manager.write_context("Snapshot content", "Snapshot commit")
@@ -114,11 +113,11 @@ def test_cli_snapshot(
 
 
 def test_cli_branch_list(
-    temp_gctx_home: Path, monkeypatch: MonkeyPatch, capsys: CaptureFixture[str]
+    temp_gnote_home: Path, monkeypatch: MonkeyPatch, capsys: CaptureFixture[str]
 ) -> None:
     """Test CLI branch list command."""
-    monkeypatch.setattr(ConfigManager, "GCTX_HOME", temp_gctx_home)
-    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gctx_home / "repo")
+    monkeypatch.setattr(ConfigManager, "GNOTE_HOME", temp_gnote_home)
+    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gnote_home / "repo")
 
     with GitContextManager("master") as manager:
         manager.write_context("Initial", "Init")
@@ -134,11 +133,11 @@ def test_cli_branch_list(
 
 
 def test_cli_branch_create(
-    temp_gctx_home: Path, monkeypatch: MonkeyPatch, capsys: CaptureFixture[str]
+    temp_gnote_home: Path, monkeypatch: MonkeyPatch, capsys: CaptureFixture[str]
 ) -> None:
     """Test CLI branch create command."""
-    monkeypatch.setattr(ConfigManager, "GCTX_HOME", temp_gctx_home)
-    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gctx_home / "repo")
+    monkeypatch.setattr(ConfigManager, "GNOTE_HOME", temp_gnote_home)
+    monkeypatch.setattr(ConfigManager, "REPO_PATH", temp_gnote_home / "repo")
 
     with GitContextManager("master") as manager:
         manager.write_context("Initial", "Init")

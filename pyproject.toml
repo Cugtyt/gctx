@@ -1,5 +1,5 @@
 [project]
-name = "gctx"
+name = "gnote"
 version = "0.1.0"
 description = "Simplified Git-based context management for LLM agents via MCP"
 readme = "README.md"
@@ -11,8 +11,8 @@ dependencies = [
 ]
 
 [project.scripts]
-gctx = "gctx.cli:main"
-gctx-server = "gctx.server:main"
+gnote = "gnote.cli:main"
+gnote-server = "gnote.server:main"
 
 [build-system]
 requires = ["hatchling"]

@@ -1,1 +1,1 @@
-"""Tests for gctx."""
+"""Tests for gnote."""

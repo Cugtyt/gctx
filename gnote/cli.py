@@ -1,4 +1,4 @@
-"""CLI commands for gctx."""
+"""CLI commands for gnote."""
 
 import argparse
 import json
@@ -6,30 +6,30 @@ import sys
 
 from pydantic import ValidationError
 
-from gctx.config import GctxConfig
-from gctx.config_manager import ConfigManager
-from gctx.git_manager import GitContextManager
+from gnote.config import GnoteConfig
+from gnote.config_manager import ConfigManager
+from gnote.git_manager import GitContextManager
 
 
 def cmd_init(args: argparse.Namespace) -> None:
-    """Initialize gctx structure.
+    """Initialize gnote structure.
 
-    CLI: gctx init <branch>
+    CLI: gnote init <branch>
     """
     branch: str = args.branch
 
-    ConfigManager.GCTX_HOME.mkdir(parents=True, exist_ok=True)
-    (ConfigManager.GCTX_HOME / "configs").mkdir(exist_ok=True)
-    (ConfigManager.GCTX_HOME / "logs").mkdir(exist_ok=True)
+    ConfigManager.GNOTE_HOME.mkdir(parents=True, exist_ok=True)
+    (ConfigManager.GNOTE_HOME / "configs").mkdir(exist_ok=True)
+    (ConfigManager.GNOTE_HOME / "logs").mkdir(exist_ok=True)
 
     ConfigManager.initialize_default()
 
     try:
         GitContextManager(branch)
         GitContextManager.checkout_branch(branch)
-        print("✓ gctx initialized at ~/.gctx")
-        print("  - Repository created at ~/.gctx/repo")
-        print(f"  - Default config created at ~/.gctx/{ConfigManager.GLOBAL_CONFIG_FILE}")
+        print("✓ gnote initialized at ~/.gnote")
+        print("  - Repository created at ~/.gnote/repo")
+        print(f"  - Default config created at ~/.gnote/{ConfigManager.GLOBAL_CONFIG_FILE}")
         print(f"  - Active branch: {branch}")
     except Exception as e:
         print(f"✗ Failed to initialize: {e}", file=sys.stderr)
@@ -39,7 +39,7 @@ def cmd_init(args: argparse.Namespace) -> None:
 def cmd_config_show(args: argparse.Namespace) -> None:
     """Show configuration for current branch.
 
-    CLI: gctx config
+    CLI: gnote config
     """
     try:
         branch = GitContextManager.get_active_branch()
@@ -56,7 +56,7 @@ def cmd_config_show(args: argparse.Namespace) -> None:
 def cmd_config_set(args: argparse.Namespace) -> None:
     """Set configuration value for current branch.
 
-    CLI: gctx config set <key> <value>
+    CLI: gnote config set <key> <value>
     """
     try:
         key: str = args.key
@@ -66,13 +66,13 @@ def cmd_config_set(args: argparse.Namespace) -> None:
         current_config = ConfigManager.load_for_branch(branch)
         overrides = ConfigManager.get_branch_override(branch)
 
-        if key not in GctxConfig.model_fields:
-            valid_keys = ", ".join(GctxConfig.model_fields.keys())
+        if key not in GnoteConfig.model_fields:
+            valid_keys = ", ".join(GnoteConfig.model_fields.keys())
             print(f"✗ Unknown config key: {key}", file=sys.stderr)
             print(f"  Valid keys: {valid_keys}", file=sys.stderr)
             sys.exit(1)
 
-        field_info = GctxConfig.model_fields[key]
+        field_info = GnoteConfig.model_fields[key]
         parsed_value: str | int
 
         try:
@@ -83,7 +83,7 @@ def cmd_config_set(args: argparse.Namespace) -> None:
 
             test_config_data = current_config.model_dump()
             test_config_data[key] = parsed_value
-            GctxConfig(**test_config_data)
+            GnoteConfig(**test_config_data)
 
         except ValidationError as e:
             errors = e.errors()
@@ -108,7 +108,7 @@ def cmd_config_set(args: argparse.Namespace) -> None:
 def cmd_branch_show(args: argparse.Namespace) -> None:
     """Show current branch.
 
-    CLI: gctx branch
+    CLI: gnote branch
     """
     try:
         branch = GitContextManager.get_active_branch()
@@ -121,7 +121,7 @@ def cmd_branch_show(args: argparse.Namespace) -> None:
 def cmd_branch_list(args: argparse.Namespace) -> None:
     """List all branches.
 
-    CLI: gctx branch list
+    CLI: gnote branch list
     """
     try:
         current = GitContextManager.get_active_branch()
@@ -139,7 +139,7 @@ def cmd_branch_list(args: argparse.Namespace) -> None:
 def cmd_branch_create(args: argparse.Namespace) -> None:
     """Create new branch.
 
-    CLI: gctx branch create <name> [--from <branch>]
+    CLI: gnote branch create <name> [--from <branch>]
     """
     try:
         name: str = args.name
@@ -158,7 +158,7 @@ def cmd_branch_create(args: argparse.Namespace) -> None:
 def cmd_branch_checkout(args: argparse.Namespace) -> None:
     """Checkout branch.
 
-    CLI: gctx branch checkout <name>
+    CLI: gnote branch checkout <name>
     """
     try:
         name: str = args.name
@@ -174,7 +174,7 @@ def cmd_branch_checkout(args: argparse.Namespace) -> None:
 def cmd_read(args: argparse.Namespace) -> None:
     """Read current context.
 
-    CLI: gctx read
+    CLI: gnote read
     """
     try:
         branch = GitContextManager.get_active_branch()
@@ -190,8 +190,8 @@ def cmd_read(args: argparse.Namespace) -> None:
 def cmd_update(args: argparse.Namespace) -> None:
     """Update context with new content.
 
-    CLI: gctx update <message> --content <text>
-          gctx update <message>  (reads from stdin)
+    CLI: gnote update <message> --content <text>
+          gnote update <message>  (reads from stdin)
     """
     try:
         message: str = args.message
@@ -216,8 +216,8 @@ def cmd_update(args: argparse.Namespace) -> None:
 def cmd_append(args: argparse.Namespace) -> None:
     """Append text to context.
 
-    CLI: gctx append <message> --text <text>
-          gctx append <message>  (reads from stdin)
+    CLI: gnote append <message> --text <text>
+          gnote append <message>  (reads from stdin)
     """
     try:
         message: str = args.message
@@ -242,7 +242,7 @@ def cmd_append(args: argparse.Namespace) -> None:
 def cmd_history(args: argparse.Namespace) -> None:
     """Show commit history.
 
-    CLI: gctx history [--limit N] [--starting-after SHA]
+    CLI: gnote history [--limit N] [--starting-after SHA]
     """
     try:
         limit: int = args.limit
@@ -273,7 +273,7 @@ def cmd_history(args: argparse.Namespace) -> None:
 def cmd_snapshot(args: argparse.Namespace) -> None:
     """Show snapshot of context at specific commit.
 
-    CLI: gctx snapshot <sha>
+    CLI: gnote snapshot <sha>
     """
     try:
         sha: str = args.sha
@@ -296,7 +296,7 @@ def cmd_snapshot(args: argparse.Namespace) -> None:
 def cmd_search(args: argparse.Namespace) -> None:
     """Search commit history by keywords.
 
-    CLI: gctx search <keyword> [keyword...] [--limit N]
+    CLI: gnote search <keyword> [keyword...] [--limit N]
     """
     try:
         keywords: list[str] = args.keywords
@@ -322,33 +322,33 @@ def cmd_search(args: argparse.Namespace) -> None:
 
 
 def cmd_validate(args: argparse.Namespace) -> None:
-    """Validate gctx setup.
+    """Validate gnote setup.
 
-    CLI: gctx validate
+    CLI: gnote validate
     """
     errors = []
 
-    if not ConfigManager.GCTX_HOME.exists():
-        errors.append("~/.gctx directory does not exist. Run 'gctx init' first.")
+    if not ConfigManager.GNOTE_HOME.exists():
+        errors.append("~/.gnote directory does not exist. Run 'gnote init' first.")
     else:
-        print("✓ ~/.gctx directory exists")
+        print("✓ ~/.gnote directory exists")
 
-        config_path = ConfigManager.GCTX_HOME / ConfigManager.GLOBAL_CONFIG_FILE
+        config_path = ConfigManager.GNOTE_HOME / ConfigManager.GLOBAL_CONFIG_FILE
         if not config_path.exists():
-            errors.append(f"~/.gctx/{ConfigManager.GLOBAL_CONFIG_FILE} does not exist")
+            errors.append(f"~/.gnote/{ConfigManager.GLOBAL_CONFIG_FILE} does not exist")
         else:
-            print(f"✓ ~/.gctx/{ConfigManager.GLOBAL_CONFIG_FILE} exists")
+            print(f"✓ ~/.gnote/{ConfigManager.GLOBAL_CONFIG_FILE} exists")
             try:
                 with config_path.open() as f:
                     json.load(f)
                 print(f"✓ {ConfigManager.GLOBAL_CONFIG_FILE} is valid JSON")
             except json.JSONDecodeError:
-                errors.append(f"~/.gctx/{ConfigManager.GLOBAL_CONFIG_FILE} is not valid JSON")
+                errors.append(f"~/.gnote/{ConfigManager.GLOBAL_CONFIG_FILE} is not valid JSON")
 
         if not ConfigManager.REPO_PATH.exists():
-            errors.append("~/.gctx/repo does not exist")
+            errors.append("~/.gnote/repo does not exist")
         else:
-            print("✓ ~/.gctx/repo exists")
+            print("✓ ~/.gnote/repo exists")
             try:
                 branch = GitContextManager.get_active_branch()
                 print(f"✓ Current branch: {branch}")
@@ -356,11 +356,11 @@ def cmd_validate(args: argparse.Namespace) -> None:
                 errors.append(f"Git repository error: {e}")
 
         for subdir in ["configs", "logs"]:
-            path = ConfigManager.GCTX_HOME / subdir
+            path = ConfigManager.GNOTE_HOME / subdir
             if not path.exists():
-                errors.append(f"~/.gctx/{subdir} does not exist")
+                errors.append(f"~/.gnote/{subdir} does not exist")
             else:
-                print(f"✓ ~/.gctx/{subdir} exists")
+                print(f"✓ ~/.gnote/{subdir} exists")
 
     if errors:
         print("\n✗ Validation failed:")
@@ -374,11 +374,11 @@ def cmd_validate(args: argparse.Namespace) -> None:
 def main() -> None:
     """Main CLI entry point."""
     parser = argparse.ArgumentParser(
-        description="gctx - Git-based context management for LLM agents"
+        description="gnote - Git-based context management for LLM agents"
     )
     subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
-    parser_init = subparsers.add_parser("init", help="Initialize gctx")
+    parser_init = subparsers.add_parser("init", help="Initialize gnote")
     parser_init.add_argument("branch", help="Initial branch name")
     parser_init.set_defaults(func=cmd_init)
 
@@ -438,7 +438,7 @@ def main() -> None:
     parser_search.add_argument("--limit", type=int, default=100, help="Max commits to search")
     parser_search.set_defaults(func=cmd_search)
 
-    parser_validate = subparsers.add_parser("validate", help="Validate gctx setup")
+    parser_validate = subparsers.add_parser("validate", help="Validate gnote setup")
     parser_validate.set_defaults(func=cmd_validate)
 
     args = parser.parse_args()

@@ -1,20 +1,20 @@
-"""MCP server entry point for gctx."""
+"""MCP server entry point for gnote."""
 
 import argparse
 
-from gctx.config import GctxConfig
-from gctx.config_manager import ConfigManager
-from gctx.logger import BranchLogger
-from gctx.mcp import setup_mcp
+from gnote.config import GnoteConfig
+from gnote.config_manager import ConfigManager
+from gnote.logger import BranchLogger
+from gnote.mcp import setup_mcp
 
 
 def main() -> None:
     """Start MCP server for a specific branch.
 
-    CLI: gctx-server --branch <name> [--config-override key=value ...]
+    CLI: gnote-server --branch <name> [--config-override key=value ...]
     """
     parser = argparse.ArgumentParser(
-        description="gctx MCP server - Git-based context management",
+        description="gnote MCP server - Git-based context management",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Config Override Examples:
@@ -42,7 +42,7 @@ Config Override Examples:
 
     with BranchLogger(args.branch) as logger:
         logger.info("=" * 60)
-        logger.info(f"Starting gctx-server on branch: {args.branch}")
+        logger.info(f"Starting gnote-server on branch: {args.branch}")
 
         config = ConfigManager.load_for_branch(args.branch)
 
@@ -64,7 +64,7 @@ Config Override Examples:
                     logger.warning(f"Unknown config key: {key}")
                     continue
 
-            config = GctxConfig(**{**config.model_dump(), **overrides})
+            config = GnoteConfig(**{**config.model_dump(), **overrides})
             logger.info(f"Config overrides applied: {overrides}")
 
         logger.info(f"Active config: {config.model_dump_json()}")

@@ -165,7 +165,7 @@ wheels = [
 ]
 
 [[package]]
-name = "gctx"
+name = "gnote"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

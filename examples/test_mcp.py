@@ -1,4 +1,4 @@
-"""Test script for gctx MCP server.
+"""Test script for gnote MCP server.
 
 This script demonstrates how to test the MCP server using an MCP client
 that connects via stdio.
@@ -21,7 +21,7 @@ from pydantic import AnyUrl
 async def test_mcp_server() -> None:
     """Test all MCP tools via the MCP server."""
     print("=" * 60)
-    print("GCTX MCP SERVER TEST")
+    print("GNOTE MCP SERVER TEST")
     print("=" * 60)
     print()
 
@@ -30,7 +30,7 @@ async def test_mcp_server() -> None:
         command="uv",
         args=[
             "run",
-            "gctx-server",
+            "gnote-server",
             "--branch",
             "master",
             "--config-override",
@@ -64,7 +64,7 @@ async def test_mcp_server() -> None:
             # Test: Read usage guide resource
             print("Test: Read usage guide resource")
             print("-" * 40)
-            usage_result = await session.read_resource(AnyUrl("gctx://usage-guide"))
+            usage_result = await session.read_resource(AnyUrl("gnote://usage-guide"))
             assert isinstance(usage_result.contents[0], TextResourceContents)
             guide_text = usage_result.contents[0].text
             print("✓ Resource read successful")

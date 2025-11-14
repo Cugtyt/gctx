@@ -5,11 +5,11 @@ from dataclasses import dataclass, field
 
 from mcp.server.fastmcp import FastMCP
 
-from gctx.config import GctxConfig
-from gctx.config_manager import ConfigManager
-from gctx.git_manager import CommitInfo, GitContextManager
-from gctx.logger import BranchLogger
-from gctx.token_counter import TokenCounter
+from gnote.config import GnoteConfig
+from gnote.config_manager import ConfigManager
+from gnote.git_manager import CommitInfo, GitContextManager
+from gnote.logger import BranchLogger
+from gnote.token_counter import TokenCounter
 
 
 @dataclass(frozen=True)
@@ -82,7 +82,7 @@ class SearchResult:
 
 def setup_mcp(
     branch: str,
-    config_override: GctxConfig | None = None,
+    config_override: GnoteConfig | None = None,
     enable_guidance_tool: bool = False,
 ) -> FastMCP:
     """Initialize tools for a specific branch.
@@ -109,13 +109,13 @@ def setup_mcp(
 
     counter = TokenCounter(config.token_approach)
 
-    mcp = FastMCP("gctx")
+    mcp = FastMCP("gnote")
 
-    USAGE_GUIDE = """Follow this guidance to use gctx context management tools effectively.
+    USAGE_GUIDE = """Follow this guidance to use gnote context management tools effectively.
 
 Actively use these tools to manage context across conversations with the user.
 These tools provide Git-based context versioning with token pressure monitoring.
-You can actively offload the conversation to gctx-managed context, allowing for better
+You can actively offload the conversation to gnote-managed context, allowing for better
 organization and compression when token limits are approached.
 
 **Core operations:**
@@ -133,10 +133,10 @@ organization and compression when token limits are approached.
 - Review history before compression to avoid losing important information
 """
 
-    @mcp.resource("gctx://usage-guide")
+    @mcp.resource("gnote://usage-guide")
     async def get_usage_guide() -> str:
-        """Usage guide for gctx context management tools."""
-        return f"# Context Management with gctx\n\n{USAGE_GUIDE}"
+        """Usage guide for gnote context management tools."""
+        return f"# Context Management with gnote\n\n{USAGE_GUIDE}"
 
     if enable_guidance_tool:
 

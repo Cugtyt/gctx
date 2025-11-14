@@ -1,6 +1,6 @@
 """Token counting for context management."""
 
-from gctx.config import TokenApproach
+from gnote.config import TokenApproach
 
 
 class TokenCounter:

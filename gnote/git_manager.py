@@ -6,9 +6,8 @@ from types import TracebackType
 
 from git import Repo
 from git.exc import InvalidGitRepositoryError
-
-from gctx.config_manager import ConfigManager
-from gctx.logger import BranchLogger
+from gnote.config_manager import ConfigManager
+from gnote.logger import BranchLogger
 
 
 @dataclass(frozen=True)
@@ -117,8 +116,8 @@ class GitContextManager:
 
                 config = repo.config_writer()
                 try:
-                    config.set_value("user", "name", "gctx-agent")
-                    config.set_value("user", "email", "agent@gctx.local")
+                    config.set_value("user", "name", "gnote-agent")
+                    config.set_value("user", "email", "agent@gnote.local")
                     self.logger.info("Git config set: user.name and user.email")
                 finally:
                     config.release()
@@ -128,7 +127,7 @@ class GitContextManager:
                     self.logger.info(f"Created context file: {self.context_file}")
 
                 repo.index.add([self.context_file])
-                repo.index.commit("Initialize gctx context")
+                repo.index.commit("Initialize gnote context")
                 self.logger.info("Initial commit created")
             except Exception as e:
                 self.logger.error(f"Failed to initialize repository: {e}")

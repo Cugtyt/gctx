@@ -1,6 +1,6 @@
-# gctx - Git-based Context Management for LLM Agents
+# gnote - Git-based Context Management for LLM Agents
 
-**gctx** is a simplified Git-based context and memory management system for LLM agents using the Model Context Protocol (MCP). It provides tools for reading, updating, and navigating context history with token pressure monitoring.
+**gnote** is a simplified Git-based context and memory management system for LLM agents using the Model Context Protocol (MCP). It provides tools for reading, updating, and navigating context history with token pressure monitoring.
 
 ## Features
 
@@ -8,7 +8,7 @@
 - 🌿 **Multi-agent branching** - Different agents work on isolated branches with their own configs
 - 📊 **Token pressure monitoring** - Track token usage against configurable limits
 - 🔧 **Dual interface** - Both CLI and MCP server for flexible integration
-- 📝 **Per-branch logging** - Separate logs for each branch in `~/.gctx/logs/`
+- 📝 **Per-branch logging** - Separate logs for each branch in `~/.gnote/logs/`
 - ⚙️ **Simple configuration** - Global defaults with per-branch overrides
 
 ## Installation
@@ -16,7 +16,7 @@
 ```bash
 # Clone the repository
 git clone <repo-url>
-cd gctx
+cd gnote
 
 # Install with uv
 uv sync
@@ -26,29 +26,29 @@ uv pip install -e .
 ## Quick Start
 
 ```bash
-# Initialize gctx with a branch name
-uv run gctx init main
+# Initialize gnote with a branch name
+uv run gnote init main
 
 # Add some context
-echo "Project started" | uv run gctx update "Initial context"
+echo "Project started" | uv run gnote update "Initial context"
 
 # Read context
-uv run gctx read
+uv run gnote read
 
 # Append more information
-uv run gctx append "New findings" --text "Found interesting pattern"
+uv run gnote append "New findings" --text "Found interesting pattern"
 
 # View history
-uv run gctx history
+uv run gnote history
 
 # Create a new branch for another agent
-uv run gctx branch create agent1
-uv run gctx branch checkout agent1
+uv run gnote branch create agent1
+uv run gnote branch checkout agent1
 ```
 
 ## Examples & Testing
 
-We provide comprehensive test scripts to help you understand and verify gctx functionality:
+We provide comprehensive test scripts to help you understand and verify gnote functionality:
 
 ### Test MCP Tools
 ```bash
@@ -73,7 +73,7 @@ See [`examples/README.md`](examples/README.md) for detailed documentation.
 ### Directory Structure
 
 ```
-~/.gctx/
+~/.gnote/
 ├── global.config.json   # Global default configuration
 ├── repo/                # Git repository
 │   └── context          # Context file (tracked by Git)
@@ -87,7 +87,7 @@ See [`examples/README.md`](examples/README.md) for detailed documentation.
 
 ### Configuration
 
-Global configuration (`~/.gctx/global.config.json`):
+Global configuration (`~/.gnote/global.config.json`):
 ```json
 {
   "token_approach": "chardiv4",
@@ -95,7 +95,7 @@ Global configuration (`~/.gctx/global.config.json`):
 }
 ```
 
-Per-branch overrides (`~/.gctx/configs/<branch>.json`):
+Per-branch overrides (`~/.gnote/configs/<branch>.json`):
 ```json
 {
   "token_limit": 12000
@@ -108,52 +108,52 @@ Branch configs override global settings. The `token_approach` currently supports
 
 ### Initialization
 ```bash
-gctx init <branch>           # Initialize gctx structure with initial branch
-gctx validate                # Validate setup
+gnote init <branch>           # Initialize gnote structure with initial branch
+gnote validate                # Validate setup
 ```
 
 ### Configuration
 ```bash
-gctx config                  # Show current branch config
-gctx config set <key> <value>  # Set config for current branch
+gnote config                  # Show current branch config
+gnote config set <key> <value>  # Set config for current branch
 ```
 
 Example:
 ```bash
-gctx config set token_limit 12000
+gnote config set token_limit 12000
 ```
 
 ### Branch Management
 ```bash
-gctx branch                  # Show current branch
-gctx branch list             # List all branches
-gctx branch create <name> [--from <branch>]  # Create new branch
-gctx branch checkout <name>  # Switch to branch
+gnote branch                  # Show current branch
+gnote branch list             # List all branches
+gnote branch create <name> [--from <branch>]  # Create new branch
+gnote branch checkout <name>  # Switch to branch
 ```
 
 ### Context Operations
 ```bash
-gctx read                    # Read current context
-gctx update <message> [--content <text>]  # Update context
-gctx append <message> [--text <text>]     # Append to context
-gctx history [--limit N] [--starting-after SHA]  # View history
-gctx snapshot <sha>          # View context at specific commit
-gctx search <keyword...> [--limit N]      # Search history by keywords
+gnote read                    # Read current context
+gnote update <message> [--content <text>]  # Update context
+gnote append <message> [--text <text>]     # Append to context
+gnote history [--limit N] [--starting-after SHA]  # View history
+gnote snapshot <sha>          # View context at specific commit
+gnote search <keyword...> [--limit N]      # Search history by keywords
 ```
 
 Examples:
 ```bash
 # Update with content flag
-gctx update "Compress context" --content "New compressed version"
+gnote update "Compress context" --content "New compressed version"
 
 # Update from stdin
-echo "New content" | gctx update "Updated via stdin"
+echo "New content" | gnote update "Updated via stdin"
 
 # Append with text flag
-gctx append "Add findings" --text "New discovery: pattern X"
+gnote append "Add findings" --text "New discovery: pattern X"
 
 # Append from stdin
-echo "More info" | gctx append "More information"
+echo "More info" | gnote append "More information"
 ```
 
 ## MCP Server
@@ -161,41 +161,41 @@ echo "More info" | gctx append "More information"
 Start the MCP server for a specific branch:
 
 ```bash
-gctx-server --branch master
+gnote-server --branch master
 ```
 
 **Override configuration:**
 ```bash
 # Override token limit for this server instance
-gctx-server --branch master --token-limit 12000
+gnote-server --branch master --token-limit 12000
 ## MCP Server
 
 Start the MCP server for a specific branch:
 
 ```bash
-gctx-server --branch master
+gnote-server --branch master
 ```
 
 **Override configuration:**
 ```bash
-gctx-server --branch master --config-override token_limit=12000
-gctx-server --branch master --config-override token_limit=12000 token_approach=chardiv4
+gnote-server --branch master --config-override token_limit=12000
+gnote-server --branch master --config-override token_limit=12000 token_approach=chardiv4
 ```
 
 The `--config-override` flag accepts `key=value` pairs to override any configuration without modifying config files.
 
 ### VS Code Integration
 
-To use gctx as an MCP server in VS Code with GitHub Copilot, configure it in your workspace's `.vscode/mcp.json`:
+To use gnote as an MCP server in VS Code with GitHub Copilot, configure it in your workspace's `.vscode/mcp.json`:
 
 **Basic configuration:**
 ```json
 {
   "servers": {
-    "gctx-server": {
+    "gnote-server": {
       "type": "stdio",
       "command": "path/to/python.exe",
-      "args": ["-m", "gctx.server", "--branch", "vscode"]
+      "args": ["-m", "gnote.server", "--branch", "vscode"]
     }
   },
   "inputs": []
@@ -206,11 +206,11 @@ To use gctx as an MCP server in VS Code with GitHub Copilot, configure it in you
 ```json
 {
   "servers": {
-    "gctx-server": {
+    "gnote-server": {
       "type": "stdio",
       "command": "path/to/python.exe",
       "args": [
-        "-m", "gctx.server",
+        "-m", "gnote.server",
         "--branch", "vscode",
         "--config-override", "token_limit=12000"
       ]
@@ -232,7 +232,7 @@ To use gctx as an MCP server in VS Code with GitHub Copilot, configure it in you
 2. **Update the Python path:**
    - If using a virtual environment: `path/to/your/.venv/Scripts/python.exe` (Windows) or `path/to/your/.venv/bin/python` (Linux/Mac)
    - If using system Python: Use the full path to your Python executable
-   - Example for this project: `C:\\MyProjects\\gctx\\.venv\\Scripts\\python.exe`
+   - Example for this project: `C:\\MyProjects\\gnote\\.venv\\Scripts\\python.exe`
 
 3. **Choose your branch:**
    - Change `--branch vscode` to use a different branch
@@ -245,15 +245,15 @@ To use gctx as an MCP server in VS Code with GitHub Copilot, configure it in you
 5. **Restart VS Code** to load the MCP server
 
 Once configured, GitHub Copilot will have access to these tools:
-- `mcp_gctx-server_read_context` - Read current context
-- `mcp_gctx-server_update_context` - Replace context
-- `mcp_gctx-server_append_to_context` - Append to context
-- `mcp_gctx-server_get_context_history` - View history
-- `mcp_gctx-server_get_snapshot` - Get historical context
-- `mcp_gctx-server_search_context_history` - Search history by keywords
+- `mcp_gnote-server_read_context` - Read current context
+- `mcp_gnote-server_update_context` - Replace context
+- `mcp_gnote-server_append_to_context` - Append to context
+- `mcp_gnote-server_get_context_history` - View history
+- `mcp_gnote-server_get_snapshot` - Get historical context
+- `mcp_gnote-server_search_context_history` - Search history by keywords
 
 And this resource:
-- `gctx://usage-guide` - Usage guide for gctx tools
+- `gnote://usage-guide` - Usage guide for gnote tools
 
 **Tip:** Use different branches for different projects or coding sessions to keep context isolated.
 
@@ -261,8 +261,8 @@ The server exposes the following MCP tools and resources:
 
 ### MCP Resource
 
-#### `gctx://usage-guide`
-Provides comprehensive usage guidelines for gctx context management tools. MCP clients can read this resource to understand how to effectively use gctx for context management across sessions.
+#### `gnote://usage-guide`
+Provides comprehensive usage guidelines for gnote context management tools. MCP clients can read this resource to understand how to effectively use gnote for context management across sessions.
 
 ### MCP Tools
 
@@ -365,7 +365,7 @@ Search commit history for keywords in messages or content.
 
 ## Token Counting
 
-gctx uses a simple `chardiv4` approach: `token_count = len(text) // 4`
+gnote uses a simple `chardiv4` approach: `token_count = len(text) // 4`
 
 Token pressure is calculated as: `token_count / token_limit`
 
@@ -373,12 +373,12 @@ The agent decides when to compress based on the pressure percentage - no automat
 
 ## Logging
 
-All operations are logged to `~/.gctx/logs/<branch>.log`:
+All operations are logged to `~/.gnote/logs/<branch>.log`:
 
 ```
-2025-11-08 12:00:00 - gctx.master - INFO - Setting up MCP tools for branch: master
-2025-11-08 12:00:05 - gctx.master - INFO - Tool called: read_context
-2025-11-08 12:00:05 - gctx.master - INFO - Read context: 1250 tokens
+2025-11-08 12:00:00 - gnote.master - INFO - Setting up MCP tools for branch: master
+2025-11-08 12:00:05 - gnote.master - INFO - Tool called: read_context
+2025-11-08 12:00:05 - gnote.master - INFO - Read context: 1250 tokens
 ```
 
 ## Development
@@ -397,8 +397,8 @@ uv run ruff check --select ANN .
 ## Project Structure
 
 ```
-gctx/
-├── gctx/
+gnote/
+├── gnote/
 │   ├── __init__.py
 │   ├── config.py           # Pydantic config model
 │   ├── config_manager.py   # Config file operations
